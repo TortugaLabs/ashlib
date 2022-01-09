@@ -1,5 +1,4 @@
 #!/bin/sh
-#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
@@ -12,30 +11,26 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#****h* ashlib/mkid
+# FUNCTION
+# Create arbintrary id strings
+#****
 
-## Functions for URL encoding/decoding
-urlencode() {
-  ## URL encodes to escape special characters
-  ## # USAGE
-  ##   urlencode text
-  local l=${#1}
-
-  local i=0; while [ $i -lt $l ]
-  do
-    local c=${1:$i:1}
-    case "$c" in
-      [a-zA-Z0-9.~_-]) printf "$c" ;;
-      ' ') printf + ;;
-      *) printf '%%%.2X' "'$c"
-    esac
-    i=$(expr $i + 1)
-  done
-}
-
-urldecode() {
-  ## Decodes URL encoded strings
-  ## # USAGE
-  ##   urldecode text
-  local data=${1//+/ }
-  printf '%b' "${data//%/\x}"
+mkid() {
+  #****f* mkid/mkid
+  # NAME
+  #   mkid -- create arbitrary id strings
+  # SYNOPSIS
+  #   mkid _text_
+  # INPUTS
+  # * text -- text to convert into id
+  # OUTPUT
+  # Sanitized text
+  # FUNCTION
+  # `mkid` accepts a string and sanitizes it so
+  # that it can be used as a shell variable name
+  #****
+  echo "$*" | tr ' -' '__' | tr -dc '_A-Za-z0-9' \
+  		| sed -e 's/^\([0-9]\)/_n\1/'
 }

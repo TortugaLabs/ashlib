@@ -4,7 +4,9 @@
 #
 # Snippets:
 #
-# ii_XXXX : variable, contains snippet description
+# ii_XXXX : variable, contains snippet description (DEPRECATED)
+# In the function include the line:
+#	: DESC "text description"
 # pl_XXXX : function to be run in the target
 # ll_XXXX : function to be run on local host, output is send as a
 #	    command on target.
@@ -20,7 +22,21 @@ set -euf -o pipefail
 mydir="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -L "$0" ] ; then
-  ashlib=$(dirname $(readlink -f "$0"))
+  basedir=$(dirname $(readlink -f "$0"))
+  if [ -d "$(dirname "$basedir")/lib/ashlib/ashlib" ] ; then
+    ashlib="$(dirname "$basedir")/lib/ashlib/ashlib"
+  elif [ -d "$(dirname "$basedir")/lib/ashlib/lib" ] ; then
+    ashlib="$(dirname "$basedir")/lib/ashlib/lib"
+  elif [ -d "$(dirname "$basedir")/lib/ashlib" ] ; then
+    ashlib="$(dirname "$basedir")/lib/ashlib"
+  elif [ -d "$(dirname "$basedir")/ashlib" ] ; then
+    ashlib="$(dirname "$basedir")/ashlib"
+  elif [ -f "$(dirname "$basedir")/lib/ashlib.sh" ] ; then
+    ashlib="$(dirname "$basedir")/lib"
+  else
+    echo "Missing ashlib folder" 1>&2
+    exit 36
+  fi
 else
   # First check if submodules are there...
   if [ -d "$mydir/.git" ] ; then
@@ -38,24 +54,30 @@ else
 
   if [ -L "$mydir/.ashlib" ] ; then
     # Check if there is a run-time file...
-    ashlib="$mydir/.ashlib"
-  elif [ -d "$mydir/ashlib" ] ; then
-    ashlib="$mydir/ashlib"
+    ashlib="$mydir/.ashlib/ashlib"
+  elif [ -d "$mydir/ashlib/src/ashlib" ] ; then
+    ashlib="$mydir/ashlib/src/ashlib"
+  elif [ -d "$mydir/modules/ashlib/src/ashlib" ] ; then
+    ashlib="$mydir/modules/ashlib/src/ashlib"
+  elif [ -d "$(dirname "$mydir")/ashlib" ] ; then
+    ashlib="$(dirname "$mydir")/ashlib"
   else
     echo "Missing \"ashlib\"" 1>&2
     exit 1
   fi
 
-  if [ ! -f "$ashlib/rs" ] ; then
-    echo "Missing \"ashlib/rs\" script" 1>&2
-    exit 2
+  rs_src=$(dirname "$ashlib")/bin/rs
+
+  if [ ! -f "$rs_src" ] ; then
+    echo "Missing \"rs\" source script" 1>&2
+    exit 68
   fi
 
   # Make sure this script and the submodule are in sync...
-  if ! cmp "$0" "$ashlib/rs" >/dev/null 2>&1 ; then
+  if ! cmp "$0" "$rs_src" >/dev/null 2>&1 ; then
     echo "Updating $0..." 1>&2
     rm -f "$0"
-    cp -a "$ashlib/rs" "$0"
+    cp -a "$$rs_src" "$0"
     exec "$SHELL" "$0" "$@"
     exit $?
   fi
@@ -199,11 +221,27 @@ if [ $# -eq 0 ] ; then
 	  load_snippets
 	  declare -F | grep '^declare -f [jpl]l_' | sed 's/^declare -f [jpl]l_//' | sort -u |while read f
 	  do
-	    eval g='"${ii_'$f':-}"'
+	    cc=$(
+	      (
+		# Make a list of the functions to be used
+		declare -F jl_$f || :
+		declare -F pl_$f || :
+		declare -F ll_$f || :
+	      ) | sed 's/^declare -f//' | xargs
+	    )
+	    g=$(declare -f $cc \
+			| awk '$1 == ":" && $2 == "DESC" { $1=""; $2=""; print }' \
+			| sed -e 's/;$//' -e 's/^ *//' )
+
+	    # DEPRECATED
+	    [ -z "$g" ] && eval g='"${ii_'$f':-}"'
+
+	    cc=$(echo "$cc" | tr " " "\n" | cut -c-2 | xargs)
+
 	    if [ -n "$g" ] ; then
-	      echo "- $f : $g"
+	      echo "- $f : $g ($cc)"
 	    else
-	      echo "- $f"
+	      echo "- $f : ($cc)"
 	    fi
 	  done
 	)

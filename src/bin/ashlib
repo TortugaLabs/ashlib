@@ -50,8 +50,15 @@ if [ -z "${ASHLIB:-}" ] ; then
     echo "Unable to determine ASHLIB location" 1>&2
     exit 1
   fi
-  echo "export ASHLIB=$ASHLIB;"
+  [ $# -eq 0 ] && echo "export ASHLIB=$ASHLIB;"
 fi
-echo "source \$ASHLIB/ashlib.sh"
-
-
+if [ $# -eq 0 ] ; then
+  echo "source \$ASHLIB/ashlib.sh"
+else
+  IFS="$(printf "\001")"
+  for i in $(find "$ASHLIB" -mindepth 1 -maxdepth 1 -type f -name '*.sh' -print0 | tr '\0' '\1')
+  do
+    . "$i"
+  done
+  "$@"
+fi

@@ -93,6 +93,9 @@ if [ -e "$mydir/pp.sh" ] ; then
   export ASHLIB="$mydir"
   . "$mydir/ashlib.sh"
   include pp.sh
+elif [ -x "$mydir/ashlib" ] ; then
+  eval "$($mydir/ashlib)"
+  include pp.sh
 elif type ashlib >/dev/null 2>&1 ; then
   eval $(ashlib)
   include pp.sh

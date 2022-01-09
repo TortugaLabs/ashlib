@@ -2,80 +2,82 @@
 
 ## Modules
 
-* [ashlib.sh](#idffd921712058fa2f06a1d30244c15a6f)
-* [cfv.sh](#id9019d8761ef8d7214af93c55e2822f54)
-* [core.sh](#id9a3132e6272f32dafc2231703598e6a9)
-* [fixattr.sh](#id803ba90cea72dbccc78e418701e00871)
-* [fixfile.sh](#id45e162b38f2f1be9db6574209fc7910c)
-* [fixlnk.sh](#iddfbd26f6bcc1362d842e921421c0aa8c)
-* [jobqueue.sh](#id509df82dd312617c416423e9f62124a8)
-* [kvped.sh](#id5fb6ba6c81dc28eedf0df3e2ba155f1c)
-* [mkid.sh](#ide5f098a9c8fc5466e4ef148ca4a19a05)
-* [mnt.sh](#id0ff04fe1eb718fc8dcfa67323e80eb2a)
-* [network.sh](#idd06d403b38e0abfc8c88688e78504674)
-* [on_exit.sh](#id66bddc838a92b164203b09563e403172)
-* [pp.sh](#idb3466428ed7fa15c0c78fb8fea22d1e2)
-* [randpw.sh](#idc9c99aabd02e0f1f60565b21c48f1845)
-* [refs.sh](#id5b306578a1c827d077d30e27023183a3)
-* [rotate.sh](#id32936da437148dd5f08db046297b455e)
-* [sdep.sh](#idb9f2656e147700a022cc3bd69b3fc9d2)
-* [shesc.sh](#ida0fec3c3924f6b7d92a1a735fdfef9bd)
-* [solv_ln.sh](#id7cd3c163f5946f312d8d67438718e7f1)
-* [spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310)
-* [urlencode.sh](#id0a29b969f7d331f4462051a135e2e4d4)
-* [ver.sh](#id6a9e8d7c4df6435bc841b6c60f679f69)
+* [../ashlib/ashlib.sh](#idb0a72584f652f44505cc50ab36e9469c)
+* [../ashlib/cfv.sh](#idadd3027633c60085719010e81c4c9780)
+* [../ashlib/core.sh](#ide3f758493d4db8a299a388d73b55c5db)
+* [../ashlib/depcheck.sh](#idcdd9ba77ba3b1d0dbe10fe22a28618f4)
+* [../ashlib/fixattr.sh](#id7738c8e00610b07fc8f7e31d382d4d9e)
+* [../ashlib/fixfile.sh](#idb3f4a11227b2fce56dbc4aa822656b41)
+* [../ashlib/fixlnk.sh](#id10c5abe62a3103e392459fb1e75cd4c1)
+* [../ashlib/jobqueue.sh](#id68163bbee085e622bb2f588909d1eacf)
+* [../ashlib/kvped.sh](#id25fe4270e036fcb4c953cd8914fb1327)
+* [../ashlib/mkid.sh](#ida69c0be4b7e90a864044141273fcf0f7)
+* [../ashlib/mnt.sh](#id5fdcd11fcffb007a13a15c44d0f9d909)
+* [../ashlib/network.sh](#id49ddbe8581cfcca3f4ae80c0e40be661)
+* [../ashlib/on_exit.sh](#id8d49b5f942213f86c2fba0b5734777e3)
+* [../ashlib/pp.sh](#idd690cceeabefe335292c8c9003aa29fe)
+* [../ashlib/randpw.sh](#id603a5c52766e3e2d547a15dfd2316d8b)
+* [../ashlib/refs.sh](#id44ac0079991d04dbbbae8d8e61904004)
+* [../ashlib/rotate.sh](#id1c235e833ea42ec0e4f340ab8ec81516)
+* [../ashlib/sdep.sh](#id7d452ffa213a46cc0ae8d53270a7d55e)
+* [../ashlib/shesc.sh](#id474d9299da0f551b4bf1600c539164e9)
+* [../ashlib/solv_ln.sh](#id7b2042cd500a40323d21e46ae5294c6a)
+* [../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3)
+* [../ashlib/urlencode.sh](#id11944f4a2dcd1ddb0cf01dc178704c57)
+* [../ashlib/ver.sh](#id1efb6558eef453d92d114f5b76ecd474)
 
 ## Functions
 
-* [_do_shesc](#idda9ba5fc4ceb2684ebf096be94b75826) ([shesc.sh](#ida0fec3c3924f6b7d92a1a735fdfef9bd))
-* [_kvp_find_sect](#iddaa6f9c4ab705ea4e8cccaa7347e4c75) ([kvped.sh](#id5fb6ba6c81dc28eedf0df3e2ba155f1c))
-* [_kvp_in_sect](#id914441683f1c4fc1779891aa89ee3d5a) ([kvped.sh](#id5fb6ba6c81dc28eedf0df3e2ba155f1c))
-* [_kvpadd](#ida6e8d14ba6a345032b9aac0dba2461d2) ([kvped.sh](#id5fb6ba6c81dc28eedf0df3e2ba155f1c))
-* [_kvpappend](#id93b9b2f950cc8ad8cf977203588e2d54) ([kvped.sh](#id5fb6ba6c81dc28eedf0df3e2ba155f1c))
-* [_kvpparsekvp](#idac26bce42d0806ba0ed287f9effc608a) ([kvped.sh](#id5fb6ba6c81dc28eedf0df3e2ba155f1c))
-* [assign](#id849d21e47dd393f960242d66a833bec6) ([refs.sh](#id5b306578a1c827d077d30e27023183a3))
-* [cfv](#id1312191e776d42f9933d3b5ad9dec8d0) ([cfv.sh](#id9019d8761ef8d7214af93c55e2822f54))
-* [exit_handler](#idfc752edfe7beaa671c632be87c402489) ([on_exit.sh](#id66bddc838a92b164203b09563e403172))
-* [fatal](#id4c4fd598994533050c02ae49ba4af566) ([core.sh](#id9a3132e6272f32dafc2231703598e6a9))
-* [find_in_path](#id271fc5b5d259b5634a1fc97aea302ae7) ([ashlib.sh](#idffd921712058fa2f06a1d30244c15a6f))
-* [find_nic](#idf00297571499302861fbd99eebf70205) ([network.sh](#idd06d403b38e0abfc8c88688e78504674))
-* [fixattr](#id92e0095f760c0308693d1c6b8b927d2a) ([fixattr.sh](#id803ba90cea72dbccc78e418701e00871))
-* [fixfile](#id0980f1da72164338b94838b688224623) ([fixfile.sh](#id45e162b38f2f1be9db6574209fc7910c))
-* [fixlnk](#id8569d0cfc56f995d8341b87c9ee8490a) ([fixlnk.sh](#iddfbd26f6bcc1362d842e921421c0aa8c))
-* [get](#id4632c8d1245241bc21707033fe21ac93) ([refs.sh](#id5b306578a1c827d077d30e27023183a3))
-* [gitver](#id846353a269ae44f882750a35618d42de) ([ver.sh](#id6a9e8d7c4df6435bc841b6c60f679f69))
-* [ifind_in_path](#ida9884ee3a3823a7d0bd06656a54c9ed1) ([ashlib.sh](#idffd921712058fa2f06a1d30244c15a6f))
-* [include](#idd087ba968162ba26d3492ab5df0b653a) ([ashlib.sh](#idffd921712058fa2f06a1d30244c15a6f))
-* [job_queue](#idac06567f4f6638a3f132e9caf0eb92a2) ([jobqueue.sh](#id509df82dd312617c416423e9f62124a8))
-* [job_worker](#ida29d42d961b6ff56e596cc934cc3dc79) ([jobqueue.sh](#id509df82dd312617c416423e9f62124a8))
-* [kvped](#id125f332d4d55a39e7acfe170c87b2201) ([kvped.sh](#id5fb6ba6c81dc28eedf0df3e2ba155f1c))
-* [mkid](#id566ae29c744927e330b3af31a7694bed) ([mkid.sh](#ide5f098a9c8fc5466e4ef148ca4a19a05))
-* [mksym](#id54957d98a3229b58ae98bc7961c6e674) ([refs.sh](#id5b306578a1c827d077d30e27023183a3))
-* [on_exit](#idfdfa2511ae59e20917bf176c230fabb3) ([on_exit.sh](#id66bddc838a92b164203b09563e403172))
-* [pp](#id6be50960c2fd7034c4b4bfcb47179c91) ([pp.sh](#idb3466428ed7fa15c0c78fb8fea22d1e2))
-* [ppCmd](#idc22b9642c9c8d9c3409ead9ed00f8d2a) ([pp.sh](#idb3466428ed7fa15c0c78fb8fea22d1e2))
-* [ppSimple](#id61682546b7c0260a6590031e44eac992) ([pp.sh](#idb3466428ed7fa15c0c78fb8fea22d1e2))
-* [quit](#idf4a61a2d64096d92e0b3c094bb55b27f) ([core.sh](#id9a3132e6272f32dafc2231703598e6a9))
-* [randpw](#idfa4d2a7682d9fdbb25c07ce8394da1e7) ([randpw.sh](#idc9c99aabd02e0f1f60565b21c48f1845))
-* [rotate](#idb1bc78262ce2d419f4bbd1a0b6b1dcaf) ([rotate.sh](#id32936da437148dd5f08db046297b455e))
-* [sdep](#idb68b04cc4e001a96c2902d075b57039c) ([sdep.sh](#idb9f2656e147700a022cc3bd69b3fc9d2))
-* [shell_escape](#id5c9e0d5935ecd7b69ec967a316ba8a09) ([shesc.sh](#ida0fec3c3924f6b7d92a1a735fdfef9bd))
-* [solv_ln](#id5fa6216b7f8aa6562af0cee098da4977) ([solv_ln.sh](#id7cd3c163f5946f312d8d67438718e7f1))
-* [spk_crypt](#id4e34e58f0a8e67a3f4311699d605d536) ([spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310))
-* [spk_decrypt](#id6be32e83c4383dfa860034e605fd10ca) ([spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310))
-* [spk_encrypt](#id100ba1ad39db5602f68e4fce4fad8227) ([spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310))
-* [spk_pem_decrypt](#idead3561114f598a3e9a2202e7a6c2683) ([spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310))
-* [spk_pem_encrypt](#id5abc89c8067654c9f8e0be36d67c54a4) ([spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310))
-* [spk_private_key](#id5f3e327d9297d153c1710627eb53edb6) ([spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310))
-* [spk_public_key](#idb79a0e4af17f4148ab6d5ef84aec9627) ([spk_enc.sh](#idbd3949c6c3cff681feef8d49312e9310))
-* [sppinc](#id7b8947faa83df0570502472204954850) ([pp.sh](#idb3466428ed7fa15c0c78fb8fea22d1e2))
-* [urldecode](#ida6f070dd764a74fc912948e0b572ac89) ([urlencode.sh](#id0a29b969f7d331f4462051a135e2e4d4))
-* [urlencode](#id7bac90220760ff12ae0cb10b74754208) ([urlencode.sh](#id0a29b969f7d331f4462051a135e2e4d4))
-* [warn](#id84676847fba018e6e735741efe42699d) ([core.sh](#id9a3132e6272f32dafc2231703598e6a9))
+* [_do_shesc](#idd6f421fc61ea34b2ea3e53a26f4afc49) ([../ashlib/shesc.sh](#id474d9299da0f551b4bf1600c539164e9))
+* [_kvp_find_sect](#id0f3d7815d4a401ef5f95208ada66a1ac) ([../ashlib/kvped.sh](#id25fe4270e036fcb4c953cd8914fb1327))
+* [_kvp_in_sect](#id7462ffcc50dc42b249ddabddf5e3ac9d) ([../ashlib/kvped.sh](#id25fe4270e036fcb4c953cd8914fb1327))
+* [_kvpadd](#id3f934cebd2ddce6a08e04ebb9d4b03b3) ([../ashlib/kvped.sh](#id25fe4270e036fcb4c953cd8914fb1327))
+* [_kvpappend](#idb8afa0e90487a3109c6acedbfcb38bb3) ([../ashlib/kvped.sh](#id25fe4270e036fcb4c953cd8914fb1327))
+* [_kvpparsekvp](#idef48e4d1026fea4cd466653dc44e0d32) ([../ashlib/kvped.sh](#id25fe4270e036fcb4c953cd8914fb1327))
+* [assign](#id5db1eaa60f057835d3fc2b85db826e4a) ([../ashlib/refs.sh](#id44ac0079991d04dbbbae8d8e61904004))
+* [cfv](#id32a8fdb0ad20b719641b12852f194c50) ([../ashlib/cfv.sh](#idadd3027633c60085719010e81c4c9780))
+* [depcheck](#idfa3f719d26478afee3161c5b85e15b18) ([../ashlib/depcheck.sh](#idcdd9ba77ba3b1d0dbe10fe22a28618f4))
+* [exit_handler](#id6f97d23361841d5d84a363b4a9d8a4c0) ([../ashlib/on_exit.sh](#id8d49b5f942213f86c2fba0b5734777e3))
+* [fatal](#id1afd10b3b94a27a751306edf8b1181a5) ([../ashlib/core.sh](#ide3f758493d4db8a299a388d73b55c5db))
+* [find_in_path](#idb5f1f5392ea23b395ebcd52e59e6aca8) ([../ashlib/ashlib.sh](#idb0a72584f652f44505cc50ab36e9469c))
+* [find_nic](#id12081a52d75028ff642d30d251d7d7c3) ([../ashlib/network.sh](#id49ddbe8581cfcca3f4ae80c0e40be661))
+* [fixattr](#id218c2d5fe72e220edd1d359508657f63) ([../ashlib/fixattr.sh](#id7738c8e00610b07fc8f7e31d382d4d9e))
+* [fixfile](#idee0e366ac37af54c53a8d47bb0d3f800) ([../ashlib/fixfile.sh](#idb3f4a11227b2fce56dbc4aa822656b41))
+* [fixlnk](#ida6a20a0dc67ec8c40ee084dba4fa129f) ([../ashlib/fixlnk.sh](#id10c5abe62a3103e392459fb1e75cd4c1))
+* [get](#idaf40ec2796ee8622c25d6b92cb410638) ([../ashlib/refs.sh](#id44ac0079991d04dbbbae8d8e61904004))
+* [gitver](#id9828ba7aec699375958785790aa02f82) ([../ashlib/ver.sh](#id1efb6558eef453d92d114f5b76ecd474))
+* [ifind_in_path](#id1a47c9134dc283aa1e2f7fced73be86a) ([../ashlib/ashlib.sh](#idb0a72584f652f44505cc50ab36e9469c))
+* [include](#id227b104d97187a5d25c6dc388f56a521) ([../ashlib/ashlib.sh](#idb0a72584f652f44505cc50ab36e9469c))
+* [job_queue](#idceb6d281b45a087237a5acf36ab5a657) ([../ashlib/jobqueue.sh](#id68163bbee085e622bb2f588909d1eacf))
+* [job_worker](#idd4ff26cb35525ea74323f9696e354d7f) ([../ashlib/jobqueue.sh](#id68163bbee085e622bb2f588909d1eacf))
+* [kvped](#id019cf33c03ae41de89e5c78eabb81604) ([../ashlib/kvped.sh](#id25fe4270e036fcb4c953cd8914fb1327))
+* [mkid](#idbd9b0f4f69619899d5b0bb0942beec5a) ([../ashlib/mkid.sh](#ida69c0be4b7e90a864044141273fcf0f7))
+* [mksym](#id208cc5ab4bca2ccd0887b63beb6bc90b) ([../ashlib/refs.sh](#id44ac0079991d04dbbbae8d8e61904004))
+* [on_exit](#idd8ed96350e71536359ad4a70d98832fb) ([../ashlib/on_exit.sh](#id8d49b5f942213f86c2fba0b5734777e3))
+* [pp](#id60550e76527b8b2ba727b1ebe4cf688c) ([../ashlib/pp.sh](#idd690cceeabefe335292c8c9003aa29fe))
+* [ppCmd](#id7dba605131cad15e5031dd6192c62990) ([../ashlib/pp.sh](#idd690cceeabefe335292c8c9003aa29fe))
+* [ppSimple](#id4e868f43e5b92fad410392475e620e6b) ([../ashlib/pp.sh](#idd690cceeabefe335292c8c9003aa29fe))
+* [quit](#id01cd14265e80a77e752258dc8e0c4832) ([../ashlib/core.sh](#ide3f758493d4db8a299a388d73b55c5db))
+* [randpw](#id7f126f4f8d6653928441d12c1a8d57fe) ([../ashlib/randpw.sh](#id603a5c52766e3e2d547a15dfd2316d8b))
+* [rotate](#idae8ace58fd0a1b7d09e2f9c2f14f2aca) ([../ashlib/rotate.sh](#id1c235e833ea42ec0e4f340ab8ec81516))
+* [sdep](#id54f8835ff58af7532e9d1c1300b732d4) ([../ashlib/sdep.sh](#id7d452ffa213a46cc0ae8d53270a7d55e))
+* [shell_escape](#idb21089f769728dc031642fcbbed5c590) ([../ashlib/shesc.sh](#id474d9299da0f551b4bf1600c539164e9))
+* [solv_ln](#idf71a8ba8013352b746aac3ce40c0324f) ([../ashlib/solv_ln.sh](#id7b2042cd500a40323d21e46ae5294c6a))
+* [spk_crypt](#id4133a4d66cb489411d3f228d243317fd) ([../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3))
+* [spk_decrypt](#id5c747430a2ad273e1c96fee3ec28d0d5) ([../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3))
+* [spk_encrypt](#idaa2a7604b82d26f323ef2cdc852347eb) ([../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3))
+* [spk_pem_decrypt](#ida86e5e784bf72375e4e784897bfe9865) ([../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3))
+* [spk_pem_encrypt](#idb53ecbad0cc3bedab58f3c845d4d6f25) ([../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3))
+* [spk_private_key](#id42b5033fc1526fe77a3fd5319b047bea) ([../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3))
+* [spk_public_key](#idca0175d57c6acd4844490d352b9f5d57) ([../ashlib/spk_enc.sh](#id4851fa353a6e93712d81c836dd817ac3))
+* [sppinc](#id7c85efa7f5d08f20fbc0558a93b47478) ([../ashlib/pp.sh](#idd690cceeabefe335292c8c9003aa29fe))
+* [urldecode](#idad5e2ce8c459f15a2ff07db58ed15ff5) ([../ashlib/urlencode.sh](#id11944f4a2dcd1ddb0cf01dc178704c57))
+* [urlencode](#id723dc4b6fae95c55eebd48d26063c5e9) ([../ashlib/urlencode.sh](#id11944f4a2dcd1ddb0cf01dc178704c57))
+* [warn](#id1318da3b2bfbef192383d53fa7ac1ad0) ([../ashlib/core.sh](#ide3f758493d4db8a299a388d73b55c5db))
 
 * * *
 
-## <a name="idffd921712058fa2f06a1d30244c15a6f"></a>ashlib.sh
+## <a name="idb0a72584f652f44505cc50ab36e9469c"></a>../ashlib/ashlib.sh
 
 This is a implicit module automatically invoked by:
 
@@ -85,7 +87,7 @@ The `core` module is included automatically.
 
 
 
-### <a name="id271fc5b5d259b5634a1fc97aea302ae7"></a>find_in_path
+### <a name="idb5f1f5392ea23b395ebcd52e59e6aca8"></a>find_in_path
 
   Find a file in a path
 
@@ -112,7 +114,7 @@ full path of found file
 
 
 
-### <a name="ida9884ee3a3823a7d0bd06656a54c9ed1"></a>ifind_in_path
+### <a name="id1a47c9134dc283aa1e2f7fced73be86a"></a>ifind_in_path
 
 Determines if the specified file is in the path variable
 
@@ -135,7 +137,7 @@ full path of found file
 
 
 
-### <a name="idd087ba968162ba26d3492ab5df0b653a"></a>include
+### <a name="id227b104d97187a5d25c6dc388f56a521"></a>include
 
 Include an `ashlib` module.
 
@@ -154,7 +156,7 @@ Include an `ashlib` module.
 
 
 
-## <a name="id9019d8761ef8d7214af93c55e2822f54"></a>cfv.sh
+## <a name="idadd3027633c60085719010e81c4c9780"></a>../ashlib/cfv.sh
 
 Configurable variables
 
@@ -172,7 +174,7 @@ cfv VARIABLE default
 
 
 
-### <a name="id1312191e776d42f9933d3b5ad9dec8d0"></a>cfv
+### <a name="id32a8fdb0ad20b719641b12852f194c50"></a>cfv
 
 Define a configurable variable
 
@@ -187,13 +189,13 @@ Define a configurable variable
 
 
 
-## <a name="id9a3132e6272f32dafc2231703598e6a9"></a>core.sh
+## <a name="ide3f758493d4db8a299a388d73b55c5db"></a>../ashlib/core.sh
 
 Some simple misc functions
 
 
 
-### <a name="id4c4fd598994533050c02ae49ba4af566"></a>fatal
+### <a name="id1afd10b3b94a27a751306edf8b1181a5"></a>fatal
 
 Fatal error
 
@@ -207,7 +209,7 @@ Show the fatal error on stderr and terminates the script.
 
 
 
-### <a name="idf4a61a2d64096d92e0b3c094bb55b27f"></a>quit
+### <a name="id01cd14265e80a77e752258dc8e0c4832"></a>quit
 
 Exit with status
 
@@ -222,7 +224,7 @@ exit_code.
 
 
 
-### <a name="id84676847fba018e6e735741efe42699d"></a>warn
+### <a name="id1318da3b2bfbef192383d53fa7ac1ad0"></a>warn
 
   Show a warning on stderr
 
@@ -232,9 +234,36 @@ exit_code.
 
 
 
-## <a name="id803ba90cea72dbccc78e418701e00871"></a>fixattr.sh
+## <a name="idcdd9ba77ba3b1d0dbe10fe22a28618f4"></a>../ashlib/depcheck.sh
 
-### <a name="id92e0095f760c0308693d1c6b8b927d2a"></a>fixattr
+### <a name="idfa3f719d26478afee3161c5b85e15b18"></a>depcheck
+
+Check file dependancies
+
+#### USAGE
+
+ depcheck <target> [depends]
+
+#### OPTIONS
+
+* target : file that would be built
+* depends : file components used to build target
+
+#### RETURNS
+
+0 if the target needs to be re-build, 1 if target is up-to-date
+
+#### DESC
+
+`depcheck` would do a dependancy check (similar to what `make`
+does).  It finds all the files in `depends` and make sure that
+all files are older than the target.
+
+
+
+## <a name="id7738c8e00610b07fc8f7e31d382d4d9e"></a>../ashlib/fixattr.sh
+
+### <a name="id218c2d5fe72e220edd1d359508657f63"></a>fixattr
 
 Updates file attributes
 
@@ -256,9 +285,9 @@ owner user and owner groups.
 
 
 
-## <a name="id45e162b38f2f1be9db6574209fc7910c"></a>fixfile.sh
+## <a name="idb3f4a11227b2fce56dbc4aa822656b41"></a>../ashlib/fixfile.sh
 
-### <a name="id0980f1da72164338b94838b688224623"></a>fixfile
+### <a name="idee0e366ac37af54c53a8d47bb0d3f800"></a>fixfile
 
 Function to modify files in-place.
 
@@ -294,9 +323,9 @@ Again, file is only written to if its conents change.
 
 
 
-## <a name="iddfbd26f6bcc1362d842e921421c0aa8c"></a>fixlnk.sh
+## <a name="id10c5abe62a3103e392459fb1e75cd4c1"></a>../ashlib/fixlnk.sh
 
-### <a name="id8569d0cfc56f995d8341b87c9ee8490a"></a>fixlnk
+### <a name="ida6a20a0dc67ec8c40ee084dba4fa129f"></a>fixlnk
 
 Function to update symlinks
 
@@ -317,9 +346,9 @@ Otherwise no action is taken.
 
 
 
-## <a name="id509df82dd312617c416423e9f62124a8"></a>jobqueue.sh
+## <a name="id68163bbee085e622bb2f588909d1eacf"></a>../ashlib/jobqueue.sh
 
-### <a name="idac06567f4f6638a3f132e9caf0eb92a2"></a>job_queue
+### <a name="idceb6d281b45a087237a5acf36ab5a657"></a>job_queue
 
 Run jobs in a queue
 
@@ -343,25 +372,25 @@ Run jobs in a queue
 
 
 
-### <a name="ida29d42d961b6ff56e596cc934cc3dc79"></a>job_worker
+### <a name="idd4ff26cb35525ea74323f9696e354d7f"></a>job_worker
 
 This is the worker thread function
 
 
 
-## <a name="id5fb6ba6c81dc28eedf0df3e2ba155f1c"></a>kvped.sh
+## <a name="id25fe4270e036fcb4c953cd8914fb1327"></a>../ashlib/kvped.sh
 
-### <a name="iddaa6f9c4ab705ea4e8cccaa7347e4c75"></a>_kvp_find_sect
+### <a name="id0f3d7815d4a401ef5f95208ada66a1ac"></a>_kvp_find_sect
 
-### <a name="id914441683f1c4fc1779891aa89ee3d5a"></a>_kvp_in_sect
+### <a name="id7462ffcc50dc42b249ddabddf5e3ac9d"></a>_kvp_in_sect
 
-### <a name="ida6e8d14ba6a345032b9aac0dba2461d2"></a>_kvpadd
+### <a name="id3f934cebd2ddce6a08e04ebb9d4b03b3"></a>_kvpadd
 
-### <a name="id93b9b2f950cc8ad8cf977203588e2d54"></a>_kvpappend
+### <a name="idb8afa0e90487a3109c6acedbfcb38bb3"></a>_kvpappend
 
-### <a name="idac26bce42d0806ba0ed287f9effc608a"></a>_kvpparsekvp
+### <a name="idef48e4d1026fea4cd466653dc44e0d32"></a>_kvpparsekvp
 
-### <a name="id125f332d4d55a39e7acfe170c87b2201"></a>kvped
+### <a name="id019cf33c03ae41de89e5c78eabb81604"></a>kvped
 
 Function to modify INI files in-place.
 
@@ -392,37 +421,11 @@ modifiers.  The following modifiers are recognized:
 
 
 
-## <a name="ide5f098a9c8fc5466e4ef148ca4a19a05"></a>mkid.sh
+## <a name="ida69c0be4b7e90a864044141273fcf0f7"></a>../ashlib/mkid.sh
 
+### <a name="idbd9b0f4f69619899d5b0bb0942beec5a"></a>mkid
 
-Arbitrary id strings
-
-
-
-### <a name="id566ae29c744927e330b3af31a7694bed"></a>mkid
-
-create arbitrary id strings
-
-#### USAGE
-
-mkid txt
-
-#### ARGS
-
-* txt -- text to convert into id
-
-#### OUTPUT
-
-sanitized text
-
-#### DESC
-
-Given an arbitrary input text, this creates a suitable id for
-it.
-
-
-
-## <a name="id0ff04fe1eb718fc8dcfa67323e80eb2a"></a>mnt.sh
+## <a name="id5fdcd11fcffb007a13a15c44d0f9d909"></a>../ashlib/mnt.sh
 
 Determine if the given directory is a mount point
 
@@ -440,7 +443,7 @@ Determine if the given directory is a mount point
 
 
 
-## <a name="idd06d403b38e0abfc8c88688e78504674"></a>network.sh
+## <a name="id49ddbe8581cfcca3f4ae80c0e40be661"></a>../ashlib/network.sh
 
 Network functions
 
@@ -448,7 +451,7 @@ Some utilities used to manage network and related tasks
 
 
 
-### <a name="idf00297571499302861fbd99eebf70205"></a>find_nic
+### <a name="id12081a52d75028ff642d30d251d7d7c3"></a>find_nic
 
 find a nic from a MAC address
 
@@ -471,13 +474,13 @@ ifconfig or other commands.
 
 
 
-## <a name="id66bddc838a92b164203b09563e403172"></a>on_exit.sh
+## <a name="id8d49b5f942213f86c2fba0b5734777e3"></a>../ashlib/on_exit.sh
 
 Used to manage multiple exit handlers
 
 
 
-### <a name="idfc752edfe7beaa671c632be87c402489"></a>exit_handler
+### <a name="id6f97d23361841d5d84a363b4a9d8a4c0"></a>exit_handler
 
 Actual exit function
 
@@ -492,7 +495,7 @@ and calls all the registered exit handlers.
 
 
 
-### <a name="idfdfa2511ae59e20917bf176c230fabb3"></a>on_exit
+### <a name="idd8ed96350e71536359ad4a70d98832fb"></a>on_exit
 
 Register a command to be called on exit
 
@@ -512,9 +515,9 @@ sequences, declare a function and call that instead.
 
 
 
-## <a name="idb3466428ed7fa15c0c78fb8fea22d1e2"></a>pp.sh
+## <a name="idd690cceeabefe335292c8c9003aa29fe"></a>../ashlib/pp.sh
 
-### <a name="id6be50960c2fd7034c4b4bfcb47179c91"></a>pp
+### <a name="id60550e76527b8b2ba727b1ebe4cf688c"></a>pp
 
 Pre-processor
 USAGE
@@ -541,7 +544,7 @@ variables, macros or include other files.
 
 
 
-### <a name="idc22b9642c9c8d9c3409ead9ed00f8d2a"></a>ppCmd
+### <a name="id7dba605131cad15e5031dd6192c62990"></a>ppCmd
 
 Command line `pp` driver
 
@@ -555,7 +558,7 @@ the result is named `file.ext`.
 
 
 
-### <a name="id61682546b7c0260a6590031e44eac992"></a>ppSimple
+### <a name="id4e868f43e5b92fad410392475e620e6b"></a>ppSimple
 
 Pre-processor
 USAGE
@@ -569,29 +572,13 @@ whereas commands can be embedded as `$(command call)`.
 
 
 
-### <a name="id7b8947faa83df0570502472204954850"></a>sppinc
+### <a name="id7c85efa7f5d08f20fbc0558a93b47478"></a>sppinc
 
-## <a name="idc9c99aabd02e0f1f60565b21c48f1845"></a>randpw.sh
+## <a name="id603a5c52766e3e2d547a15dfd2316d8b"></a>../ashlib/randpw.sh
 
-### <a name="idfa4d2a7682d9fdbb25c07ce8394da1e7"></a>randpw
+### <a name="id7f126f4f8d6653928441d12c1a8d57fe"></a>randpw
 
-Generate a random password
-
-#### Usage
-
-   randpw [cnt]
-
-#### ARGS
-
-* cnt - password length
-
-#### OUTPUT
-
-Random password
-
-
-
-## <a name="id5b306578a1c827d077d30e27023183a3"></a>refs.sh
+## <a name="id44ac0079991d04dbbbae8d8e61904004"></a>../ashlib/refs.sh
 
 Symbolic/Reference functions
 
@@ -599,7 +586,7 @@ Let's you add a level of indirection to shell scripts
 
 
 
-### <a name="id849d21e47dd393f960242d66a833bec6"></a>assign
+### <a name="id5db1eaa60f057835d3fc2b85db826e4a"></a>assign
 
 Assigns a value to the named variable
 
@@ -620,7 +607,7 @@ to the actual variable.
 
 
 
-### <a name="id4632c8d1245241bc21707033fe21ac93"></a>get
+### <a name="idaf40ec2796ee8622c25d6b92cb410638"></a>get
 
 Returns the value of varname.
 
@@ -644,7 +631,7 @@ the actual variable to be referenced.
 
 
 
-### <a name="id54957d98a3229b58ae98bc7961c6e674"></a>mksym
+### <a name="id208cc5ab4bca2ccd0887b63beb6bc90b"></a>mksym
 
 create a symbol from a given string
 
@@ -670,9 +657,9 @@ nameing.
 
 
 
-## <a name="id32936da437148dd5f08db046297b455e"></a>rotate.sh
+## <a name="id1c235e833ea42ec0e4f340ab8ec81516"></a>../ashlib/rotate.sh
 
-### <a name="idb1bc78262ce2d419f4bbd1a0b6b1dcaf"></a>rotate
+### <a name="idae8ace58fd0a1b7d09e2f9c2f14f2aca"></a>rotate
 
 Function to rotate log files
 
@@ -693,20 +680,20 @@ number, 0 being the newest and "count-1" the oldest.
 
 
 
-## <a name="idb9f2656e147700a022cc3bd69b3fc9d2"></a>sdep.sh
+## <a name="id7d452ffa213a46cc0ae8d53270a7d55e"></a>../ashlib/sdep.sh
 
-### <a name="idb68b04cc4e001a96c2902d075b57039c"></a>sdep
+### <a name="id54f8835ff58af7532e9d1c1300b732d4"></a>sdep
 
-## <a name="ida0fec3c3924f6b7d92a1a735fdfef9bd"></a>shesc.sh
+## <a name="id474d9299da0f551b4bf1600c539164e9"></a>../ashlib/shesc.sh
 
 Shell escape function.  Quotes strings so they can be safefly included
 parsed by eval or in other scripts.
 
 
 
-### <a name="idda9ba5fc4ceb2684ebf096be94b75826"></a>_do_shesc
+### <a name="idd6f421fc61ea34b2ea3e53a26f4afc49"></a>_do_shesc
 
-### <a name="id5c9e0d5935ecd7b69ec967a316ba8a09"></a>shell_escape
+### <a name="idb21089f769728dc031642fcbbed5c590"></a>shell_escape
 
   Escape string for shell parsing
 
@@ -731,9 +718,9 @@ only contains safe characters, nothing is actually done.
 
 
 
-## <a name="id7cd3c163f5946f312d8d67438718e7f1"></a>solv_ln.sh
+## <a name="id7b2042cd500a40323d21e46ae5294c6a"></a>../ashlib/solv_ln.sh
 
-### <a name="id5fa6216b7f8aa6562af0cee098da4977"></a>solv_ln
+### <a name="idf71a8ba8013352b746aac3ce40c0324f"></a>solv_ln
 
 Resolves symbolic links so they are relative paths
 
@@ -761,9 +748,9 @@ paths.
 
 
 
-## <a name="idbd3949c6c3cff681feef8d49312e9310"></a>spk_enc.sh
+## <a name="id4851fa353a6e93712d81c836dd817ac3"></a>../ashlib/spk_enc.sh
 
-### <a name="id4e34e58f0a8e67a3f4311699d605d536"></a>spk_crypt
+### <a name="id4133a4d66cb489411d3f228d243317fd"></a>spk_crypt
 
 Encrypt or decrypt `stdin` using a `ssh` public/private key.
 
@@ -792,7 +779,7 @@ Encrypted/Decrypted data
 
 
 
-### <a name="id6be32e83c4383dfa860034e605fd10ca"></a>spk_decrypt
+### <a name="id5c747430a2ad273e1c96fee3ec28d0d5"></a>spk_decrypt
 
 Decrypt `stdin` using a `ssh` public/private key.
 
@@ -815,7 +802,7 @@ Encrypted data
 
 
 
-### <a name="id100ba1ad39db5602f68e4fce4fad8227"></a>spk_encrypt
+### <a name="idaa2a7604b82d26f323ef2cdc852347eb"></a>spk_encrypt
 
 Encrypt `stdin` using a `ssh` public/private key.
 
@@ -838,7 +825,7 @@ Encrypted data
 
 
 
-### <a name="idead3561114f598a3e9a2202e7a6c2683"></a>spk_pem_decrypt
+### <a name="ida86e5e784bf72375e4e784897bfe9865"></a>spk_pem_decrypt
 
 Decrypt `stdin` using a `PKCS8/PEM` key.
 
@@ -857,7 +844,7 @@ De-crypted data
 
 
 
-### <a name="id5abc89c8067654c9f8e0be36d67c54a4"></a>spk_pem_encrypt
+### <a name="idb53ecbad0cc3bedab58f3c845d4d6f25"></a>spk_pem_encrypt
 
 Encrypt `stdin` using a `PKCS8/PEM` key.
 
@@ -876,7 +863,7 @@ Encrypted data
 
 
 
-### <a name="id5f3e327d9297d153c1710627eb53edb6"></a>spk_private_key
+### <a name="id42b5033fc1526fe77a3fd5319b047bea"></a>spk_private_key
 
 Prepare a private key
 
@@ -896,7 +883,7 @@ Reads a OpenSSH private key and create a key file usable by OpenSSL
 
 
 
-### <a name="idb79a0e4af17f4148ab6d5ef84aec9627"></a>spk_public_key
+### <a name="idca0175d57c6acd4844490d352b9f5d57"></a>spk_public_key
 
 Prepare a public key
 
@@ -915,50 +902,14 @@ Reads a OpenSSH public key and create a key file usable by OpenSSL
 
 
 
-## <a name="id0a29b969f7d331f4462051a135e2e4d4"></a>urlencode.sh
+## <a name="id11944f4a2dcd1ddb0cf01dc178704c57"></a>../ashlib/urlencode.sh
 
-Functions for URL encoding/decoding
+### <a name="idad5e2ce8c459f15a2ff07db58ed15ff5"></a>urldecode
 
+### <a name="id723dc4b6fae95c55eebd48d26063c5e9"></a>urlencode
 
+## <a name="id1efb6558eef453d92d114f5b76ecd474"></a>../ashlib/ver.sh
 
-### <a name="ida6f070dd764a74fc912948e0b572ac89"></a>urldecode
-
-Decodes URL encoded strings
-
-#### USAGE
-
-  urldecode text
-
-
-
-### <a name="id7bac90220760ff12ae0cb10b74754208"></a>urlencode
-
-URL encodes to escape special characters
-
-#### USAGE
-
-  urlencode text
-
-
-
-## <a name="id6a9e8d7c4df6435bc841b6c60f679f69"></a>ver.sh
-
-### <a name="id846353a269ae44f882750a35618d42de"></a>gitver
-
-Determine the current version information from git
-
-#### USAGE
-
-    gitver _git-directory_
-
-#### ARGS
-
-* git-directory : Directory to the git repository
-
-#### OUTPUT
-
-version information
-
-
+### <a name="id9828ba7aec699375958785790aa02f82"></a>gitver
 
 
