@@ -1,7 +1,8 @@
-ashlib
-======
+# ashlib
 
-Ashlib is a library that implements useful functions for either bash or sh.
+
+ASHLIB is a snippet library that implements useful functions for either
+bash or sh.
 
 ## Copyright
 
@@ -18,87 +19,33 @@ Ashlib is a library that implements useful functions for either bash or sh.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-## Synopsis
+## Usage
 
-Include in your script:
+The way it works is via the `binder.py` script which lets you
+embed snippets into your scripts.  It will also update
+snippets if they ever change.
 
-    eval $(ashlib)
+## Folder structure
 
-After that you can:
+- `scripts` : contains bound scripts.  Copy these to include into your
+  own code.
+- `utils` : contains code that is included by bound scripts.
 
-    include _module_
+## Notes
 
-## Available modules
+- ###$_include: <module> \
+  For actual scripts that need to include modules.  These scripts
+  would be modified in-place if needed.
+- ###$_requires: <module> \
+  For included module dependances.  If a module needs another module
+  use reqquires.  These are *not* modified in-place, but are only
+  used for modules included by scripts.
 
-* ashlib.sh  
-  Automatically included by `ashlib`.  Defines the `include` function.
-* core.sh  
-  Basic definitions.
-* find_in_path.sh  
-  Find if a file exists in a PATH variable.
-* fixattr.sh  
-  Fix file attributes (ownership and permissions)
-* fixfile.sh  
-  Update the contents of a file.
-* fixlnk.sh  
-  Update symbolic links.
-* kvped.sh
-  Edit "ini" file contents
-* mkid.sh  
-  Sanitize strings so that they are used as shell variables
-* mnt.sh  
-  Mounted file system utilities
-* network.sh  
-  Network related function
-* on_exit.sh  
-  functions to be executed when a script terminates
-* pp.sh  
-  bash pre-processor
-* refs.sh  
-  A reference library
-* rotate.sh  
-  File rotation script
-* sdep.sh  
-  Implement soft dependancies
-* shesc.sh  
-  Escape variables so that they are properly parsed by a shell interpreter
-* solv_ln.sh  
-  Resolve symbolic links
-* spk_enc.sh  
-  Encrypt files using SSH Public keys.
-* urlencode.sh  
-  Escape strings so that they can be used in URLs.
-* ver.sh  
-  Determine git version information.
-
-## Utility commands
-
-* ashlib  
-  Set-up ashlib
-* rs
-  Run snippets.
-* shlog  
-  Run a shell while loging stdin.
-* shdoc  
-  Simple perl (?!?) script to create reference documentation.
-* spp
-  Shell-like Pre-processor driver
-
-## Installation
-
-A `makefile` is provided.  Installation can be done with:
-
-    make install DESTDIR=/opt
-
-## API
-
-See [API](API-doc.md).
-
-## NOTES
-
-* TODO: revamp Makefile
-* TODO: Update docs
-* TODO: write unit tests 
+Example, the scripts in `scripts` use `###$_include` to include the
+main module in `utils`.  In `utils`, the included module use
+`###$_requires` to embed their dependancies.
 
 
+
+## TODO
 

@@ -1,0 +1,976 @@
+#!/bin/sh
+###$_begin-include: utils/rsx.sh
+#
+# Copyright (c) 2023 Alejandro Liu
+# Licensed under the MIT license:
+#
+# Permission is  hereby granted,  free of charge,  to any  person obtaining
+# a  copy  of  this  software   and  associated  documentation  files  (the
+# "Software"),  to  deal in  the  Software  without restriction,  including
+# without  limitation the  rights  to use,  copy,  modify, merge,  publish,
+# distribute, sublicense, and/or sell copies of the Software, and to permit
+# persons  to whom  the Software  is  furnished to  do so,  subject to  the
+# following conditions:
+#
+# The above copyright  notice and this permission notice  shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE  SOFTWARE  IS  PROVIDED  "AS  IS",  WITHOUT  WARRANTY  OF  ANY  KIND,
+# EXPRESS  OR IMPLIED,  INCLUDING  BUT  NOT LIMITED  TO  THE WARRANTIES  OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+# NO EVENT SHALL THE AUTHORS OR  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR  OTHER LIABILITY, WHETHER  IN AN  ACTION OF CONTRACT,  TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+# USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+set -euf -o pipefail
+
+mydir=$(readlink -f "$(dirname "$0")")
+
+
+_do_shesc() {
+  case "$*" in
+  *\'*)
+    ;;
+  *)
+    echo "'$*'"
+    return
+    ;;
+  esac
+
+  local in="$*" ; shift
+  local ln=${#in}
+  local oo="" q=""
+  local i=0; while [ $i -lt $ln ]
+  do
+    local ch=${in:$i:1}
+    case "$ch" in
+    [a-zA-Z0-9.~_/+-])
+      oo="$oo$ch"
+      ;;
+    \')
+      q="'"
+      oo="$oo'\\''"
+      ;;
+    *)
+      q="'"
+      oo="$oo$ch"
+      ;;
+    esac
+    i=$(expr $i + 1)
+  done
+  echo "$q$oo$q"
+}
+
+
+shell_escape() { #$ Escape string for shell parsing
+  #$ :usage: shell_escape [options] "string"
+  [ $# -eq 0 ] && return 0 # Trivial case...
+  local fq=false
+  while [ $# -gt 0 ]
+  do
+    case "$1" in
+      #$ :param -q: Always include single quotes
+      -q) fq=true ;;
+      #$ :param --  End of options
+      --) shift ; break ;;
+      *) break ;;
+    esac
+    shift
+  done
+  #$ :param string : string to escape
+  #$ :output: escaped string
+  #$
+  #$ shell_escape will examine the passed string in the
+  #$ arguments and add any appropriate meta characters so that
+  #$ it can be safely parsed by a UNIX shell.
+  #$
+  #$ It does so by enclosing the string with single quotes (if
+  #$ it the string contains "unsafe" characters.).  If the string
+  #$ only contains safe characters, nothing is actually done.
+  if $fq ; then
+    _do_shesc "$@"
+    return $?
+  fi
+  if [ -z "$(echo "$*" | tr -d 'a-zA-Z0-9.~_/+-]')" ] ; then
+    # All valid chars, nothing to be done...
+    echo "$*"
+    return 0
+  fi
+  _do_shesc "$@"
+  return $?
+}
+
+
+if [ $# -gt 0 ] && [ x"$1" = x"-s" ] ; then
+  # Run using script...
+  shift
+  cmdline="$(shell_escape "$SHELL") $(shell_escape "$0")"
+  for i in "$@"
+  do
+    cmdline="$cmdline $(shell_escape "$i")"
+  done
+  exec script -c "$cmdline" typescript.$(date +%F.%H.%M.%S)
+fi
+
+#
+# Configuration statements
+#
+export_vars=""
+cfg() {
+  local kv k v cmd overwrite=false
+
+  while [ $# -gt 0 ]
+  do
+    case "$1" in
+      -w|-f) overwrite=true ;;
+      *) break ;;
+    esac
+    shift
+  done
+
+  for kv in "$@"
+  do
+    k="$(echo "$kv" | cut -d= -f1)"
+    if $overwrite ; then
+      eval v=\"\${$k:-}\"
+      [ -z "$v" ] && v="$(echo "$kv" | cut -d= -f2-)"
+    else
+       v="$(echo "$kv" | cut -d= -f2-)"
+    fi
+    cmd="$k=$(shell_escape "$v");"
+    export_vars="$export_vars$cmd"
+    export "$k=$v"
+  done
+}
+
+no_target() {
+  # No target, runs in the current interpreter
+  target=
+  is_local=true
+}
+
+remote_target() {
+  # remote target, runs via ssh
+  target="$1"
+  is_local=false
+}
+local_target() {
+  # local target, runs via sudo or a separate shell
+  target=""
+  is_local=false
+}
+
+no_target
+#
+# Environment files
+#
+[ -f "$HOME/secrets.cfg" ] && . "$HOME/secrets.cfg"
+[ -f "$mydir.env" ] && . "$mydir.env"
+#
+# Run Snippets
+#
+# Snippets are functions of the form:
+#
+# rs_XXXX : Remote Snippet : runs on the target
+# ps_XXXX : Pre-processed Snippet : runs locally but output send to target to be executed
+# ls_XXXX : Local snippet : always run locally
+# sn_XXXX : snippet that may run remote or local depending on the mode
+#
+
+snippets_inv() {
+  declare -F \
+	| grep -E '^declare -f (rs|ps|ls|sn)_[_A-Za-z][A-Za-z0-9]*' \
+	| sed -e 's/^declare -f [a-z][a-z]_//' \
+	| sort -u
+}
+
+snippets_fns() {
+  local i f="$1"
+  (for i in rs ps ls sn
+  do
+    declare -F ${i}_${f} || :
+  done) |  xargs
+}
+
+snippets_load() {
+  local i
+  for i in $(find "$mydir" -maxdepth 1 -mindepth 1 -name '*.sh')
+  do
+    [ ! -f "$i" ] && continue
+    grep -q -E '^\s*(rs|ps|ls|sn)_[_A-Za-z][A-Za-z0-9]*\(' "$i" || continue
+    $vv && stderr "Loading $i"
+    . "$i"
+  done
+
+  local err="" c
+  for s in $(snippets_inv)
+  do
+    c=0
+    declare -F sn_${s} > /dev/null && c=$(expr $c + 1)
+    declare -F ls_${s} > /dev/null && c=$(expr $c + 1)
+    (declare -F rs_${s} || declare -F ps_${s}) >/dev/null && c=$(expr $c + 1)
+    [ $c -gt 1 ] && err="$err $s"
+  done
+  [ -n "$err" ] && die -45 "Conflicting snippet definitions: $err"
+  $vv && stderr "Snippets: $(snippets_inv | wc -w)"
+  :
+}
+
+snippets_help() {
+  local sn fs f msg
+  snippets_inv | while read sn
+  do
+    fs=$(snippets_fns "$sn")
+    msg=$(
+      (for f in $fs
+      do
+	declare -f "$f" \
+		  | awk '$1 == ":" && $2 == "DESC" { $1=""; $2=""; print ; }' \
+		  | sed -e 's/^  //' -e 's/;$//'
+      done) | uniq
+    )
+    if [ -n "$msg" ] ; then
+      if [ $(echo "$msg" | wc -l) -eq 1 ] ; then
+        echo "* $sn : $msg ($fs)"
+      else
+        echo "$msg" | (
+	  fmt="* $sn : %s ($fs)"
+	  while read ln
+	  do
+	    printf "$fmt\n" "$ln"
+	    fmt="  %s"
+	  done
+	)
+      fi
+    else
+      echo "* $sn : $fs"
+    fi    
+  done
+}   
+
+#
+# These two are built-in snippets
+#
+# Essentially test snippets
+#
+rs_ping() {
+  : DESC Check connectivity
+  echo "Hello world $(hostname)"
+}
+sn_uptime() {
+  : DESC display local uptime
+  uptime
+}
+
+#~ sn_fake1() {
+  #~ : DESC this is desc
+  #~ ugie
+  #~ dougie
+#~ }
+
+
+#~ rs_boo() {
+  #~ : DESC just a thing
+  #~ another thing
+#~ }
+
+#~ ps_boo() {
+  #~ : DESC blah blah
+  #~ blah
+  #~ ble
+#~ }
+
+#~ ls_foo() {
+  #~ : DESC bo bo
+  #~ blah
+#~ }
+
+#~ rs_blah() {
+  #~ yeah yea
+#~ }
+
+#~ sn_blah() {
+  #~ yow
+
+#~ }
+
+#~ set -euf -o pipefail
+#~ snippets_help
+#~ mydir=$HOME/ww/qcontainers
+
+#~ set -x
+#~ snippets_load
+
+
+
+
+#
+# Used to install scripts to current directory
+#
+
+die() { #$  exit script with status
+  #$ :usage: die [-rc] [msg]
+  #$ :param -int: will exit with erro-code `int`
+  #$ :param msg: message to display on stderr
+  local rc=1
+  [ $# -eq 0 ] && set - -1 EXIT
+  case "$1" in
+    -[0-9]*) rc=${1#-}; shift ;;
+  esac
+  #$
+  #$ Exit script display error and with the given exit code
+  #$
+  #$ The default is to use exit code "1" and show "EXIT" on stderr.
+  #$ :output:  Will show the given message on stderr.
+  #$ :return: Will exit the given return code.
+  echo "$@" 1>&2
+  exit $rc
+}
+
+
+install_util() {
+  [ $# -eq 0 ] && return 0
+  local target=
+  case "$1" in
+    -i) [ $# -eq 1 ] && target=$(pwd) || target="$2" ;;
+    --install=*) target="${1#--install=}" ;;
+    --install) target="$(pwd)" ;;
+    *) return 0
+  esac
+
+  [ -z "$target" ] && return 0
+  [ ! -d "$target" ] && die -5 "$target: not a directory"
+
+  target="$target/$(basename "$0")"
+  [ -e "$target" ] &&  die -7 "$target: already exists!  Try re-binding instead."
+  cp -av "$0" "$target"
+  exit $?
+}  
+
+  
+    
+###$_requires-satisfied: die.sh as /home/alex/ww/ashlib-bounded/die.sh
+
+# -- these functions are for use in loaded snippets ---
+
+
+depcheck() { #$ Check file dependancies
+  #$ :usage: depcheck [options] <target> [depends]
+  #$ :param --verbose: show dependancy failures
+  #$ :param target: file that needs to be built
+  #$ :param depends : file components used to build target
+  #$ :returns: true if target needs to be re-build.  false if target is up-to-date.
+  #$
+  #$ Given a "target" will make sure that it is newer of all the
+  #$ dependancies
+  #$
+  #$ depcheck would do a dependancy check (similar to what `make`
+  #$ does).  It finds all the files in `depends` and make sure that
+  #$ all files are older than the target.
+  verbose=false
+  while [ $# -gt 0 ]
+  do
+    case "$1" in
+      --verbose|-v) verbose=true ;;
+      *) break ;;
+    esac
+    shift
+  done
+  local target="$1" ; shift
+  [ ! -f "$target" ] && return 0
+  local tdate=$(date -r "$target" '+%s')
+
+  find "$@" -type f | (
+    while read f
+    do
+      local ddate=$(date -r "$f" +'%s')
+      if [ $tdate -lt $ddate ] ; then
+	$verbose && echo $target $tdate:$ddate $f 1>&2
+	exit 0
+      fi
+    done
+    exit 1
+  )
+  return $?
+}
+
+
+
+find_nic() { #$ find a nic from a MAC address
+  #$ :usage: find_nic mac
+  #$ :param mac: mac address to find (xx:xx:xx:xx:xx)
+  #$ :output: The device name that belongs to that mac address or empty
+  #$
+  #$ Given a mac address, returns the network interface to use in
+  #$ ifconfig or other commands.
+  local l_mac="$1"
+
+  ip addr show | awk '
+      BEGIN { devname=""; rc=1}
+      $1 ~ /[0-9]+:$/ { devname=$2; }
+      $1 == "link/ether" && $2 == "'"$l_mac"'" {
+	print substr(devname,1,length(devname)-1);
+	rc=0
+      }
+      END {
+	exit rc;
+      }
+      '
+}
+
+
+
+fixfile() { #$ Modify files in-place
+  #$ :usage: fixfile [options] file
+  local mode= user= group= backupdir= backupext="~" filter=false mkdir=false encoded=false content=true
+  #$
+  #$ By default, modified files will be first backed up to a file with ~ extension.
+  #$ The following options are available:
+  #$
+  #$ :param --nobackup: disable creation of backups
+  #$ :param --backupext=ext: Backups are created by adding ext.  Defaults to "~".
+  #$ :param --no-content: only change metadata (mode, group, ownership)
+  #$ :param --filter: Use filter mode.  The stdin is used as an script that will modify stdin (current file) and the stdout is used as the new contents of the file.
+  #$ :param --decode: input is considered to be gzippped+base64 encoded data
+  #$ :param --mode=mode: mode to set permissions to.
+  #$ :param --user=user: set ownership to user
+  #$ :param --group=group: set group to group
+  #$ :param -D|--mkdir: if specified, containing directory is created if doesn't exist.
+  #$ :param --: stop processing arguments
+  #$ :param file: file to create or modify
+  while [ $# -gt 0 ]
+  do
+    case "$1" in
+      --nobackup) backupext= ;;
+      --backupext=*) backupext=${1#--backupext=} ;;
+      --filter) filter=true ;;
+      --decode) encoded=true ;;
+      --no-content) content=false ;;
+      --mode=*) mode=${1#--mode=} ;;
+      --user=*) user=${1#--user=} ;;
+      --group=*) group=${1#--group=} ;;
+      -D|--mkdir) mkdir=true ;;
+      --) shift ; break ;;
+      -*)  echo "Invalid option: $1" 1>&2 ; return 1 ;;
+      *) break ;;
+    esac
+    shift
+  done
+  #$
+  #$ Files are modified in-place only if the contents change.  This means
+  #$ time stamps are kept accordingly.
+  #$
+  #$ <stdin> will be used as the contents of the new file unless --filter
+  #$ is specified.  When in filter mode, the <stdin> is a shell script
+  #$ that will be executed with <stdin> is the current contents of the
+  #$ file and <stdout> as the new contents of the file.
+  #$
+  #$ Again, file is only written to if its conents change.
+  #$
+  if $encoded && $filter ; then
+    echo "Can not specify --filter and --decode!" 1>&2
+    return 2
+  fi
+  if ! $content ; then
+    if ($encoded || $filter) ; then
+      echo "Can not specify --filter or --decode with --no-content!" 1>&2
+      return 3
+    fi
+  fi
+
+  if [ $# -eq 0 ] ; then
+    echo "No file specified" 1>&2
+    return 3
+  fi
+  local file="$1" ; shift
+  [ $# -gt 0 ] && echo "Ignoring additional options: $*" 1>&2
+
+  if [ -z "$group" ] && [ -n "$user" ] ; then
+    # Check if user == {user}:{group}
+    eval $(
+	echo "$user" | (
+	    IFS=:
+	    a="" ; b=""
+	    read a b
+	    [ -z "$b" ] && return
+	    echo "user='$a' ; group='$b'"
+	)
+    )
+  fi
+
+  local msg= otxt="" ntxt="" tmpfile=""
+
+  if [ -f "$file" ] ; then
+    if $encoded ; then
+      # Handled binary files...
+      otxt="$(md5sum "$file" | awk '{print $1}')"
+    else
+      otxt=$(sed 's/^/:/' "$file")
+    fi
+  else
+    if ! $content ; then
+      echo "$file: does not exist (can not create)" 1>&2
+      return 4
+    fi
+    if $mkdir && [ ! -d "$(dirname "$file")" ] ; then
+      mkdir -p "$(dirname "$file")"
+      [ -n "$user" ] && chown "$user" "$(dirname "$file")"
+      [ -n "$group" ] && chgrp "$group" "$(dirname "$file")"
+    fi
+  fi
+
+  if $filter ; then
+    # Stdin is not contents but actually is a filter script
+    local incode="$(cat)"
+    if [ -f "$file" ] ; then
+      ntxt="$(cat "$file")"
+    else
+      ntxt=""
+    fi
+    ntxt=$(echo "$ntxt" | (eval "$incode" )| sed 's/^/:/' )
+  elif $encoded ; then
+    tmpfile=$(mktemp -p "$(dirname "$file")")
+    base64 -d | gunzip > "$tmpfile"
+    ntxt=$(md5sum "$tmpfile" | awk '{print $1}')
+  else
+    $content && ntxt=$(sed 's/^/:/')
+  fi
+
+  if $content && [ x"$otxt" != x"$ntxt" ] ; then
+    if [ -f $file ] ; then
+      [ -f "$file$backupext" ] && rm -f "$file$backupext"
+      [ -n "$backupext" ] && cp -dp "$file" "$file$backupext"
+    fi
+    if $encoded ; then
+      cat < "$tmpfile" >"$file"
+    else
+      echo "$ntxt" | sed 's/^://' > "$file"
+    fi
+    msg=$(echo $msg updated)
+  fi
+  $encoded && [ -n "$tmpfile" ] && [ -f "$tmpfile" ] && rm -f "$tmpfile"
+
+  if [ -n "$user" ] ; then
+    if [ $(find "$file" -maxdepth 0 -user "$user" | wc -l) -eq 0 ] ; then
+      chown "$user" "$file"
+      msg=$(echo $msg chown)
+    fi
+  fi
+  if [ -n "$group" ] ; then
+    if [ $(find "$file" -maxdepth 0 -group "$group" | wc -l) -eq 0 ] ; then
+      chgrp "$group" "$file"
+      msg=$(echo $msg chgrp)
+    fi
+  fi
+  if [ -n "$mode" ] ; then
+    if [ $(find "$file" -maxdepth 0 -perm "$mode" | wc -l) -eq 0 ] ; then
+      chmod "$mode" "$file"
+      msg=$(echo $msg chmod)
+    fi
+  fi
+  #$ :returns: true if file was changed, false if no change was needed
+  #$ :output: File is updated if changed.  Filename and change summary is displayed on stderr.
+  if [ -n "$msg" ] ; then
+    echo "$file: $msg" 1>&2
+    return 0
+  fi
+  return 1
+}
+
+
+fixlnk() { #$ Function to update symlinks
+  #$ :usage: fixlnk [-D] target lnk
+  local mkdir=false force=false
+  #$ :param -D: if specified, link directory is created.
+  #$ :param -f: if a file or directory of the sane name exists, it will be deleted.
+  #$ :param target: where the link should be pointing to
+  #$ :param lnk: where the link is to be created
+  while [ $# -gt 0 ]
+  do
+    case "$1" in
+    -D) mkdir=true ;;
+    -f) force=true ;;
+    *) break
+    esac
+    shift
+  done
+  #$ Will make sure that the given symlink exists and points to the
+  #$ right location.
+  #$
+  #$ Note that this will first check if the symlink needs to be corrected.
+  #$ Otherwise no action is taken.
+  #$ :returns: true if file was changed, false if no change was performed
+  if [ $# -ne 2 ] ; then
+    echo "Usage: fixlnk {target} {lnk}" 1>&2
+    return 10
+  fi
+
+  local lnkdat="$1"
+  local lnkloc="$2"
+
+  if [ -L "$lnkloc" ] ; then
+    clnkdat=$(readlink "$lnkloc")
+    [ x"$clnkdat" = x"$lnkdat" ] && return 0
+    echo "Updating $lnkloc" 1>&2
+    rm -f "$lnkloc"
+  elif [ -e "$lnkloc" ] ; then
+    if $forced ; then
+      echo "Fixing $lnkloc" 1>&2
+      rm -rf "$lnkloc"
+    else
+      return 1
+    fi
+  else
+    echo "Creating $lnkloc" 1>&2
+  fi
+  $mkdir && [ ! -d "$(dirname "$lnkloc")" ] && mkdir -p "$(dirname "$lnkloc")"
+  ln -s "$lnkdat" "$lnkloc"
+}
+
+
+is_mounted() ( #$ check if directory is a mounted mount point
+  #$ :usage:
+  #$ :param directory: directory moint point
+  #$ :returns: true if mounted, false if not
+  #$
+  #$ Determine if the given directory is a mount point
+  [ "$1" = none ] && return 1
+  [ -d "$1" ] || return 1
+  [  $(awk '$2 == "'"$1"'" { print }' /proc/mounts | wc -l) -eq 1 ] && return 0
+  return 1
+)
+
+
+
+mkid() { #$ create arbitrary id strings
+  #$ :usage: _text_
+  #$ :param text: text to convert into id
+  #$ :output: Sanitized text
+  #$
+  #$ mkid accepts a string and sanitizes it so
+  #$ that it can be used as a shell variable name
+  echo "$*" | tr ' -' '__' | tr -dc '_A-Za-z0-9' \
+  		| sed -e 's/^\([0-9]\)/_n\1/'
+}
+
+
+
+trap __exit_handler EXIT
+__exit_cmd=":"
+
+__exit_handler() {
+  eval "$__exit_cmd"
+}
+
+on_exit() { #$ register a command to be called on exit
+  #$ :usage: on_exit exit_command
+  #$ :param exit_command: command to execute on exit.
+  #$
+  #$ Adds a shell command to be executed on exit.
+  #$
+  #$ Instead of hooking `trap` _cmd_ `exit`, **on_exit** is cumulative,
+  #$ so multiple calls to **on_exit** will not replace the exit handler
+  #$ but add to it.
+  #$
+  #$ Only single commands are supported.  For more complex **on_exit**
+  #$ sequences, declare a function and call that instead.
+  __exit_cmd="$__exit_cmd ; $*"
+}
+
+
+param() { #$ look-up key values from a params file
+  #$ :usage: param "params-file" "key"
+  #$ :param params-file: file with parameters
+  #$ :param key: key to look-up
+  #$ :output: configured value or empty string
+  #$
+  #$ This is a simple (quick and dirty) function to store configurable
+  #$ parameters in a file.
+  local src="$1" key="$2"
+  awk '
+    $1 == "'"$key"'" {
+      $1="";
+      print substr($0,2);
+    }
+  ' "$src"
+}
+
+
+randpw() { #$ Generate random password
+  #$ :usage: randpw [length]
+  #$ :param length: password length
+  #$ :output: random password of the specified length
+  local chrs="1234567890abcdefghijklmnopqrstuvwxuyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#%^&*()-+_[]{};:,./<>?~'"
+  local cc=$(expr length "$chrs")
+
+  local cnt=32 i=''
+  [ $# -gt 0 ] && cnt="$1"
+
+  while [ $cnt -gt 0 ]
+  do
+    cnt=$(expr $cnt - 1)
+    i="$i${chrs:$(expr $RANDOM % $cc):1}"
+  done
+  echo "$i"
+}
+
+
+retry() { #$ retry a command until it succeeds
+  local v=true count=60 delay=1
+  #$ :usage: retry [options] cmd
+  #$ :param --verbose: show '.' to indicate attempts
+  #$ :param -0no-verbose: Do not show output
+  #$ :param --count=number: number of retry attempts
+  #$ :param --delay=seconds: wait this many seconds between attempts
+  #$ :param cmd : command (or function) to execute
+  while [ $# -gt 0 ]
+  do
+    case "$1" in
+      --verbose|-v) v=true ;;
+      --no-verbose|-q) v=false ;;
+      --count=*) count=${1#--count=} ;;
+      --delay=*) delay=${1#--delay=} ;;
+      --) shift ; break ;;
+      *) break ;;
+    esac
+    shift
+  done
+  #$ :outputs: if verbose, show progress.
+  #$ :returns: true on success, false on failure
+  #$
+  #$ retry will attempt the given command until it succeeds up to
+  #$ a maximum count attempts.  To avoid overloading the systems,
+  #$ it will dealy attempts by the given delay (or 1 seconds if no
+  #$ delay was specified.
+  #$
+  #$ If verbose is specified, it will show '.' per attempt.  And show
+  #$ either "[TIMED-OUT]" or "[OK]" when completion on stderr.
+  #$
+  #$ Note that if the command being executed generates output it will
+  #$ be displayed.
+  while ! "$@"
+  do
+    $v && echo -n '.' 1>&2
+    count=$(expr $count - 1)
+    if [ $count -lt 1 ] ; then
+      $v && echo ' [TIMED-OUT]' 1>&2
+      return 1 # Failed
+    fi
+    sleep $delay
+  done
+  $v && echo ' [OK]' 1>&2
+  return 0
+}
+
+
+stderr() { #$ write to stderr
+  #$ :usage: stderr message
+  #$ Like the echo command but outputs to stdout instead ofstderr.
+  #$
+  #$ This could be done by echo and I/O redirection, but this is just
+  #$ syntatically more pleasent.
+  echo "$@" 1>&2
+}
+
+#$ URL encoding/decoding functions
+
+urlencode() { #$ encode string according to URL escape rules
+  #$ :usage: urlencode "string"
+  #$ :param string: string to encode
+  #$ :output: encoded string
+  #$
+  #$ Encode a "string" following URL encoding rules
+  local l=${#1} i=0
+  while [ $i -lt $l ]
+  do
+    local c=${1:$i:1}
+    case "$c" in
+      [a-zA-Z0-9.~_-]) printf "$c" ;;
+      ' ') printf + ;;
+      *) printf '%%%.2X' "'$c"
+    esac
+    i=$(expr $i + 1)
+  done
+}
+
+urldecode() { #$ decode URL encoded strings
+  #$ :usage: urldecode "string"
+  #$ :param string: string to decode
+  #$ :input: If no text is given as argument, urldecode will decode standard input.
+  #$ :output: Decoded strings
+  if [ $# -eq 0 ] ; then
+    printf '%b\n' "$(sed 's/+/ /g; s/%\([0-9a-fA-F][0-9a-fA-F]\)/\\x\1/g;')"
+  else
+    local data=${1//+/ }
+    printf '%b' "${data//%/\\x}"
+  fi
+}
+
+
+fixattr() { fixfile --no-content "$@" ; }
+# TODO: kvped solv_ln
+# TODO:MAYBE: jobqueue refs rotate spk_enc extras/lvcfg macros/*
+
+setx="${RS_SETX:-false}"
+dryrun="${RS_DRYRUN:-false}"
+vv="${RS_VERBOSE:-false}"
+
+while [ $# -gt 0 ]
+do
+  case "$1" in
+    -x|--set-x) setx=true ;;
+    -t|--dry-run) dryrun=true ;;
+    -v|--verbose) vv=true ;;
+    -q|--quiet) vv=false ;;
+    --no-target) no_target ;;
+    --local) local_target ;;
+    --target=*) remote_target ${1#--target=} ;;
+    --*=*) cfg -f "${1#--}" ;;
+    --) shift ; break ;;
+    *) install_util "$@" ; break ;;
+  esac
+  shift
+done
+
+if [ -n "${RS_RCFILE:-}" ] ; then
+  [ -f "${RS_RCFILE}" ] && . "${RS_RCFILE}"
+fi
+
+snippets_load
+
+if [ $# -eq 0 ] ; then
+  cat <<-__EOF__
+	Usage: $0 [options] {snippet} [args]
+	Options:
+	  -s : create typescript (must always be the first argument)
+	  -x : set -x
+	  -v : verbose mode
+	  -q : disables verbose mode
+	  --dry-run : dry-run mode.  Show commands but don't execute
+	  --no-target : run locally (in the same interpreter)
+	  --local : run on localhost on a separated shell
+	  --target=host : run remotely using ssh
+	  --key=val : configure key value
+	  -i [dir] : install $0 to current directory or [dir].
+
+	Snippets:
+
+	$(snippets_help)
+	__EOF__
+  exit 0
+fi
+
+snippet="$1" ; shift
+# Make sure snippet name is valid
+[ x"$snippet" != x"$(echo "$snippet" | tr -dc _A-Za-z0-9)" ] && die -83 "$snippet: invalid snippet name"
+
+local_run() {
+  local snfn="$1" ; shift
+  if $dryrun ; then
+    echo "$snfn" "$@"
+    declare -f "$snfn"
+  else
+    rc=0
+    ( $setx && set -x ; "$snfn" "$@" ) || rc=$?
+    exit $rc
+  fi
+}
+
+if $is_local ; then
+  # Run in the current interpreter
+  snfn=""
+  for p in rs_ ps_
+  do
+    if declare -F "$p$snippet" >/dev/null ; then
+      snfn="$p$snippet"
+      break
+    fi
+  done
+  [ -n "$snfn" ] && die -4 "$snippet: Only available in targetted runs"
+
+  for p in ls_ sn_
+  do
+    if declare -F "$p$snippet" >/dev/null ; then
+      snfn="$p$snippet"
+      break
+    fi
+  done
+  [ -z "$snfn" ] && die -86 "$snippet: Unknown snippet"
+
+  $vv && stderr "Running $snfn"
+  local_run "$snfn" "$@"
+else
+  # targetted run
+  if declare -F "ls_$snippet" >/dev/null ; then
+    $vv && stderr "Running in-place: ls_$snippet"
+    local_run "ls_$snippet" "$@"
+  else
+    (declare -F "rs_$snippet" || declare -F "ps_$snippet"  || declare -F "sn_$snippet")>/dev/null || \
+	die -22 "$snippet: no remote snippet"
+
+    exec 3>&1 # Remember stdout...
+    (
+      echo 'set -o pipefail'
+      echo 'set -euf'
+
+      echo "$export_vars"
+      declare -f
+
+      $setx && echo "set -x"
+
+      if declare -F "ps_$snippet" >/dev/null ; then
+	# Pre-processed code
+	$vv && stderr "Pre-processing with ps_$snippet"
+	if $dryrun ; then
+	  declare -f "ps_$snippet" | sed -e 's/^/#PS#/'
+	else
+	  sshout() { "$@" 1>&4; }
+	  rcmd() { sshout echo "$@"; }
+	  "ps_$snippet" "$@" 4>&1 1>&3
+	fi
+      fi
+      snfn=""
+      for f in rs_ sn_
+      do
+	if declare -F "$f$snippet" >/dev/null ; then
+	  snfn="$f$snippet"
+	  break
+	fi
+      done
+      if [ -n "$snfn" ] ; then
+	$vv && stderr "rexec: $snfn"
+	echo -n "$snfn"
+	for f in "$@"
+	do
+	  echo -n " $(shell_escape "$f")"
+	done
+	echo ''
+      fi
+      echo ''
+      echo 'rc=$?'
+      echo 'echo DONE: $rc'
+      echo 'exit $rc'
+    ) | (
+      if $dryrun ; then
+        exec cat
+      else
+	if [ -n "$target" ] ; then
+	  $vv && stderr "Connecting to $target"
+	  exec ssh \
+		$([ -n "${SSH_AUTH_SOCK:-}" ] && [ -e "$SSH_AUTH_SOCK" ] && echo '-A') \
+		"$target"
+	else
+	  if [ $(id -u) -eq 0 ] ; then
+	    $vv && stderr "Spawning $SHELL -l "
+	    exec "$SHELL" -l
+	  else
+	    stderr "Running sudo $SHELL -l"
+	    exec sudo "$SHELL" -l
+	  fi
+	fi
+      fi
+    )
+  fi
+fi
+###$_end-include: utils/rsx.sh

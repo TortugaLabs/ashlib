@@ -10,25 +10,6 @@ BINDER=python3 ../binder.py
 endif
 ###$_end-include: mk/prologue.mk
 
-help:
-	@echo "Usage:"
-	@echo "- make doc : generate documentation"
-	@echo "- make todo : check code completeness"
-	@echo "- make test : run unit tests"
-	@echo "- make rebind : rebind scripts and Makefile(s) to latest snippets"
-	@echo "  Sub options: make OPTS=flags rebind"
-	@echo "  - OPTS=-u : unbind files"
-	@echo "  - OPTS=--dry-run : do not modify files, just show what happens"
-	@echo "- make rtest : recursive test"
-	@echo "- make pkgs : create packaged libraries"
-
-doc:
-	python3 ashdoc.py --title='ashlib scripting API' --prune --output=docs/ashlib \
-		cgilib/*.sh \
-		pp/*.sh \
-		*.sh
-	docs/py make -C docs html
-
 ###$_begin-include: mk/todo.mk
 todo:
 	@x= ; for s in $(SNIPPETS) ; do x="$$(echo $$x $$(grep -q -e '#\$$' $$s || echo $$s))" ; done ; [ -n "$$x" ] && echo "Missing doc-block: $$x" || :
@@ -40,13 +21,6 @@ todo:
 	  make --no-print-directory -C "$$i" todo ; \
 	done
 ###$_end-include: mk/todo.mk
-	@gh issue list || ( \
-		url=$$(tr -d ' ' < .git/config | grep url= | cut -d= -f2) ; \
-		owner="$$(basename "$$(dirname "$$url")")"; \
-		repo="$$(basename "$$url" .git)" ; \
-		gh repo set-default "$$owner/$$repo" ; \
-		gh issue list || : \
-	)
 
 ###$_begin-include: mk/Kyuafile.mk
 Kyuafile: $(SNIPPETS)
@@ -57,11 +31,7 @@ Kyuafile: $(SNIPPETS)
 ###$_end-include: mk/Kyuafile.mk
 
 test: Kyuafile
-	if type kyua ; then kyua test ; fi
-
-rebind:
-	$(BINDER) -R $(OPTS) scripts
-	$(BINDER) -R $(OPTS) --pattern='F+Makefile' --pattern='F-*' .
+	kyua test
 
 ###$_begin-include: mk/rtest.mk
 rtest: test
@@ -71,7 +41,7 @@ rtest: test
 	done
 ###$_end-include: mk/rtest.mk
 
-pkg/ashlib.sh: $(SNIPPETS) $(shell find pp -maxdepth 1 -type f '(' -name '*.sh' -o -name '*.bash' ')' | sed -e 's!^./!!')
+../pkg/cgilib.sh: $(SNIPPETS)
 	###$_begin-include: mk/upx.mk
 	#
 	# Compressed/executable
@@ -88,10 +58,3 @@ pkg/ashlib.sh: $(SNIPPETS) $(shell find pp -maxdepth 1 -type f '(' -name '*.sh' 
 				| gzip -9 | base64  ; \
 			echo '_EOF_' ; echo ')"' ) > $@
 	###$_end-include: mk/upx.mk
-
-pkg/cgilib.sh:
-	make -C cgilib ../pkg/cgilib.sh
-
-pkgs: pkg/ashlib.sh pkg/cgilib.sh
-
-

@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Pre-release checks
+#
+( set -o pipefail ) && set -o pipefail || :
+set -euf
+
+if ! type atf-sh ; then
+  sudo apt-get -y install atf-sh
+fi
+if ! type kyua ; then
+  sudo apt-get -y install kyua
+fi
+
+#~ ./spk_enc.sh xt_run
+
+make rebind
+#
+# More standard checks
+#
+for mkf in Makefile makefile
+do
+  if [ -f "$mkf" ] ; then
+    if grep -q '^rtest:' "$mkf" ; then
+      make rtest
+    elif grep -q '^test:' "$mkf" ; then
+      make test
+    elif grep -q '^check:' "$mkf" ; then
+      make check
+    fi
+
+    if grep -q '^todo:' "$mkf" ; then
+      echo ''
+      echo 'Show TODO items =========================='
+      echo ''
+      make todo
+      echo ''
+    fi
+    break
+  fi
+done
