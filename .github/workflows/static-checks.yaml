@@ -1,13 +1,15 @@
 name: static checks
-on: [push]
+on:
+  push:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   job-id:
     runs-on: ubuntu-latest
     if: startswith(github.ref,'refs/heads/')
     steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
+      - uses: actions/checkout@v3
       - name: static checks
         run: |
           echo ${{ github.event_name }}
