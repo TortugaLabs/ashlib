@@ -1,4 +1,5 @@
 #!/bin/sh
+###$_requires: version.sh
 #
 # Copyright (c) 2020 Alejandro Liu
 # Licensed under the MIT license:

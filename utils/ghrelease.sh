@@ -1,4 +1,5 @@
 #!/bin/sh
+###$_requires: version.sh
 #
 # Release script
 #

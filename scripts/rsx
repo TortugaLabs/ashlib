@@ -1,5 +1,9 @@
 #!/bin/sh
 ###$_begin-include: utils/rsx.sh
+ashlib_version=$(echo '
+v3.0.0
+' |grep -v '^$')
+
 #
 # Copyright (c) 2023 Alejandro Liu
 # Licensed under the MIT license:

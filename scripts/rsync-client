@@ -1,5 +1,9 @@
 #!/bin/sh
 ###$_begin-include: utils/rsync-client.sh
+ashlib_version=$(echo '
+v3.0.0
+' |grep -v '^$')
+
 set -euf -o pipefail
 indexing=false
 dryrun=false

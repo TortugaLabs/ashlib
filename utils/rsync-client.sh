@@ -1,4 +1,5 @@
 #!/bin/sh
+###$_requires: version.sh
 set -euf -o pipefail
 indexing=false
 dryrun=false
