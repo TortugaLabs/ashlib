@@ -6,7 +6,7 @@
 ashlib reference documentation
 ==============================
 
-|release|
+`Github <https://github.com/TortugaLabs/ashlib>`_: |release|
 
 .. toctree::
    :maxdepth: 2

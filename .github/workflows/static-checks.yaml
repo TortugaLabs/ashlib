@@ -15,3 +15,5 @@ jobs:
           if [ -x  "$checks" ] ; then
             "$(readlink -f "$checks")" $@ || exit $?
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
