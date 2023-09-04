@@ -39,7 +39,7 @@ jobs:
           sh docs/setup.sh
       - name: Generating sphinx documentation
         run: |
-          make doc && cp -av docs/_build/html ../_site
+          make doc && cp -av docs/_build/html _site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
   # Deployment job
