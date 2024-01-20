@@ -23,70 +23,73 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#++
-# = PP(1)
-# :Revision:	1.0
-# :Author:	A Liu Ly
-# :man manual:  ashlib programmer's manual
-#
-# == NAME
-#
-# pp - bash pre-processor
-#
-# == SYNOPSIS
-#
-# pp [--output=output] -Iinclude-path -Dcmd file.m.ext ...
-#
-# == DESCRIPTION
-#
-# Reads some textual data and output post-processed data.
-#
-# Uses HERE_DOC syntax for the pre-processing language.
-# So for example, variables are expanded directly as `$varname`
-# whereas commands can be embedded as `$(command call)`.
-#
-# As additional extension, lines of the form:
-#
-# ----
-# ##! command
-# ----
-#
-# Are used to include arbitrary shell commands.  These however
-# are executed in line (instead of a subshell as in `$(command)`.
-# This means that commands in `##!` lines can be used to define
-# variables, macros or include other files.
-#
-# == OPTIONS
-#
-# --output=output|-o::
-#   Sets the output filename.  If specified, all the input
-#   files will be sent to the output filename.  Use `-` for
-#   standard output.
-# -Iinclude-dir::
-#   Adds `include-dir` to the executable `PATH` (which is used
-#   in source commands (`.`).
-# -Dcmd::
-#   `cmd` will be eval'ed by the shell.  Used to define variables
-#   from the command line
-# file.m.ext::
-#   Input file to process.  Use `-` for standard input.  If `output`
-#   is not specified, the output will be `file.ext` unless the file
-#   extension can not be recognized.  In that case the output will
-#   be the same as the input file name with `.out` appended.
-#
-# == SPECIAL VARIABLES
-#
-# Within the pre-processed file, the following variables are
-# available:
-#
-# - name::
-#   input name without extensions.
-# - input::
-#   input file name
-# - output::
-#   output file name
-#--
-#
+#@@@ spp.1.md
+#@ :version: <%VERSION%>
+#@
+#@ # NAME
+#@
+#@ *spp* - bash pre-processor
+#@
+#@ # SYNOPSIS
+#@
+#@ **spp** \[**--output=output**] \[**-I** _include-path] \[**-D** _cmd_] _file.m.ext_  _..._
+#@
+#@ # DESCRIPTION
+#@
+#@ Reads some textual data and output post-processed data.
+#@
+#@ Uses HERE_DOC syntax for the pre-processing language.
+#@ So for example, variables are expanded directly as `$varname`
+#@ whereas commands can be embedded as `$(command call)`.
+#@
+#@ As additional extension, lines of the form:
+#@
+#@ ```bash
+#@ ##! command
+#@ ```
+#@
+#@ Are used to include arbitrary shell commands.  These however
+#@ are executed in line (instead of a subshell as in `$(command)`.
+#@ This means that commands in `##!` lines can be used to define
+#@ variables, macros or include other files.
+#@
+#@ ## OPTIONS
+#@
+#@ --output=output|-o
+#@
+#@ :  Sets the output filename.  If specified, all the input
+#@    files will be sent to the output filename.  Use `-` for
+#@    standard output.
+#@
+#@ -Iinclude-dir
+#@
+#@ :  Adds `include-dir` to the executable `PATH` (which is used
+#@    in source commands (`.`).
+#@
+#@ -Dcmd
+#@
+#@ :  `cmd` will be eval'ed by the shell.  Used to define variables
+#@    from the command line
+#@
+#@ file.m.ext
+#@
+#@ :   Input file to process.  Use `-` for standard input.  If `output`
+#@     is not specified, the output will be `file.ext` unless the file
+#@     extension can not be recognized.  In that case the output will
+#@     be the same as the input file name with `.out` appended.
+#@
+#@ # SPECIAL VARIABLES
+#@
+#@ Within the pre-processed file, the following variables are
+#@ available:
+#@
+#@ - name::
+#@   input name without extensions.
+#@ - input::
+#@   input file name
+#@ - output::
+#@   output file name
+#@
 set -euf -o pipefail
 
 ###$_requires: pp/pp_cmd.sh

@@ -1,8 +1,43 @@
 #!/bin/sh
 ###$_begin-include: utils/rsync-client.sh
-ashlib_version=$(echo '
-v3.0.0
-' |grep -v '^$')
+ashlib_version='v3.0.0'
+
+#@@@ rsync-client.1.md
+#@ :version: v3.0.0
+#@
+#@ # NAME
+#@
+#@ **rsync-client** -- backup files to an rsync server
+#@
+#@ # SYNOPSIS
+#@
+#@ **rsync-client** \[**--\[no-]index**] \[**--\[no-]dry-run**] \[**--\[no-]info**] _module_ _pwd-file_ _srv_ _src_ \[_dst_]
+#@
+#@ # DESCRIPTION
+#@
+#@ Backup a directory tree to a remote rsync daemon (using plain rsync
+#@ protocol).
+#@
+#@ It can create an index file that can be used to quickly search and also
+#@ to backup and restore special files without elevated permissions on the
+#@ backup repository.
+#@
+#@ # OPTIONS
+#@
+#@ - **--\[no-]index** : Generate index data
+#@ - **--\[no-]dry-run** : If enabled only displays what would be done, but
+#@   will not transfer any data.
+#@ - **--\[no-]info** : display backup info
+#@ - _module_ : rsync module name on the target server
+#@ - _pwd-file_ : file containing the password
+#@ - _srv_ : target server
+#@ - _src_ : directory tree to backup
+#@ - _dst_ : target directory in the backup server's _module_
+#@
+#@ # SEE ALSO
+#@
+#@ **rsync(1)**
+#@
 
 set -euf -o pipefail
 indexing=false
@@ -52,19 +87,11 @@ if [ ! -d "$src" ] ; then
 fi
 
 
-commify() { #$ Format numbers with commas
-  #$ :usage: commify value
-  #$ :param value: value
-  #$ :output: formatted value
+commify() {
   echo $1 | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta'
 }
 
-humanize_sz() { #$ Format numbers as friendly sizes
-  #$ :usage: humaniz_sz [--bsz=scale] value
-  #$ :param --bsz=scale: Optional.  block size
-  #$ :param --dec=digits: Optional.  decimal points
-  #$ :param value: value to format
-  #$ :output: Will output value as a human readable string
+humanize_sz() {
   local scale=1 dec=1
 
   while [ $# -gt 0 ]
@@ -104,13 +131,8 @@ humanize_sz() { #$ Format numbers as friendly sizes
 }
 
 
-humanize_ti() { #$ Format numbers in seconds into human readable time intervals
-  #$ :usage: humanize_ti [-m|-h|-d] value
-  #$ :param -m: Optional.  value given in minutes
-  #$ :param -h: Optional.  value given in hours
-  #$ :param -d: Optional.  value given in days
-  #$ :param value: value to format (in seconds unless option given)
-  #$ :output: Will output value as a human readable string
+humanize_ti() {
+  #|****
   local scale=1
 
   while [ $# -gt 0 ]
@@ -277,15 +299,5 @@ $info && echo $(humanize_ti $(expr $(date +%s) - $start))
 $info && echo "EXIT: $rc"
 
 exit $rc
-
-
-
-# src=rsyncd/ ; srv=nd2 ; module=hassio ; RSYNC_PASSWORD=ziJ4Yi2o
-  #~ server: nd2.localnet
-  #~ port: 18873
-  #~ target: hassio
-  #~ username: hassio
-  #~ password: ziJ4Yi2o
-  #~ ssh_enabled: false
 
 ###$_end-include: utils/rsync-client.sh

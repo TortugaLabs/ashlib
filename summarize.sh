@@ -1,8 +1,5 @@
 #!/usr/bin/atf-sh
 
-#|****f* ashlib/summarize
-#| NAME
-#|   summarize --
 summarize() { #$ show command progress without spamming the screen
   #$ :usage: cmd | summarize [done-msg]
   #$ :param [dome-msg]: message to show when command compeltes.  Defaults to "Done"

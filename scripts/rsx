@@ -1,8 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/rsx.sh
-ashlib_version=$(echo '
-v3.0.0
-' |grep -v '^$')
+ashlib_version='v3.0.0'
 
 #
 # Copyright (c) 2023 Alejandro Liu
@@ -67,31 +65,18 @@ _do_shesc() {
 }
 
 
-shell_escape() { #$ Escape string for shell parsing
-  #$ :usage: shell_escape [options] "string"
+shell_escape() {
   [ $# -eq 0 ] && return 0 # Trivial case...
   local fq=false
   while [ $# -gt 0 ]
   do
     case "$1" in
-      #$ :param -q: Always include single quotes
       -q) fq=true ;;
-      #$ :param --  End of options
       --) shift ; break ;;
       *) break ;;
     esac
     shift
   done
-  #$ :param string : string to escape
-  #$ :output: escaped string
-  #$
-  #$ shell_escape will examine the passed string in the
-  #$ arguments and add any appropriate meta characters so that
-  #$ it can be safely parsed by a UNIX shell.
-  #$
-  #$ It does so by enclosing the string with single quotes (if
-  #$ it the string contains "unsafe" characters.).  If the string
-  #$ only contains safe characters, nothing is actually done.
   if $fq ; then
     _do_shesc "$@"
     return $?
@@ -313,21 +298,12 @@ sn_uptime() {
 # Used to install scripts to current directory
 #
 
-die() { #$  exit script with status
-  #$ :usage: die [-rc] [msg]
-  #$ :param -int: will exit with erro-code `int`
-  #$ :param msg: message to display on stderr
+die() {
   local rc=1
   [ $# -eq 0 ] && set - -1 EXIT
   case "$1" in
     -[0-9]*) rc=${1#-}; shift ;;
   esac
-  #$
-  #$ Exit script display error and with the given exit code
-  #$
-  #$ The default is to use exit code "1" and show "EXIT" on stderr.
-  #$ :output:  Will show the given message on stderr.
-  #$ :return: Will exit the given return code.
   echo "$@" 1>&2
   exit $rc
 }
@@ -359,19 +335,7 @@ install_util() {
 # -- these functions are for use in loaded snippets ---
 
 
-depcheck() { #$ Check file dependancies
-  #$ :usage: depcheck [options] <target> [depends]
-  #$ :param --verbose: show dependancy failures
-  #$ :param target: file that needs to be built
-  #$ :param depends : file components used to build target
-  #$ :returns: true if target needs to be re-build.  false if target is up-to-date.
-  #$
-  #$ Given a "target" will make sure that it is newer of all the
-  #$ dependancies
-  #$
-  #$ depcheck would do a dependancy check (similar to what `make`
-  #$ does).  It finds all the files in `depends` and make sure that
-  #$ all files are older than the target.
+depcheck() {
   verbose=false
   while [ $# -gt 0 ]
   do
@@ -401,13 +365,7 @@ depcheck() { #$ Check file dependancies
 
 
 
-find_nic() { #$ find a nic from a MAC address
-  #$ :usage: find_nic mac
-  #$ :param mac: mac address to find (xx:xx:xx:xx:xx)
-  #$ :output: The device name that belongs to that mac address or empty
-  #$
-  #$ Given a mac address, returns the network interface to use in
-  #$ ifconfig or other commands.
+find_nic() {
   local l_mac="$1"
 
   ip addr show | awk '
@@ -425,24 +383,8 @@ find_nic() { #$ find a nic from a MAC address
 
 
 
-fixfile() { #$ Modify files in-place
-  #$ :usage: fixfile [options] file
+fixfile() {
   local mode= user= group= backupdir= backupext="~" filter=false mkdir=false encoded=false content=true
-  #$
-  #$ By default, modified files will be first backed up to a file with ~ extension.
-  #$ The following options are available:
-  #$
-  #$ :param --nobackup: disable creation of backups
-  #$ :param --backupext=ext: Backups are created by adding ext.  Defaults to "~".
-  #$ :param --no-content: only change metadata (mode, group, ownership)
-  #$ :param --filter: Use filter mode.  The stdin is used as an script that will modify stdin (current file) and the stdout is used as the new contents of the file.
-  #$ :param --decode: input is considered to be gzippped+base64 encoded data
-  #$ :param --mode=mode: mode to set permissions to.
-  #$ :param --user=user: set ownership to user
-  #$ :param --group=group: set group to group
-  #$ :param -D|--mkdir: if specified, containing directory is created if doesn't exist.
-  #$ :param --: stop processing arguments
-  #$ :param file: file to create or modify
   while [ $# -gt 0 ]
   do
     case "$1" in
@@ -461,17 +403,6 @@ fixfile() { #$ Modify files in-place
     esac
     shift
   done
-  #$
-  #$ Files are modified in-place only if the contents change.  This means
-  #$ time stamps are kept accordingly.
-  #$
-  #$ <stdin> will be used as the contents of the new file unless --filter
-  #$ is specified.  When in filter mode, the <stdin> is a shell script
-  #$ that will be executed with <stdin> is the current contents of the
-  #$ file and <stdout> as the new contents of the file.
-  #$
-  #$ Again, file is only written to if its conents change.
-  #$
   if $encoded && $filter ; then
     echo "Can not specify --filter and --decode!" 1>&2
     return 2
@@ -573,8 +504,6 @@ fixfile() { #$ Modify files in-place
       msg=$(echo $msg chmod)
     fi
   fi
-  #$ :returns: true if file was changed, false if no change was needed
-  #$ :output: File is updated if changed.  Filename and change summary is displayed on stderr.
   if [ -n "$msg" ] ; then
     echo "$file: $msg" 1>&2
     return 0
@@ -583,13 +512,8 @@ fixfile() { #$ Modify files in-place
 }
 
 
-fixlnk() { #$ Function to update symlinks
-  #$ :usage: fixlnk [-D] target lnk
+fixlnk() {
   local mkdir=false force=false
-  #$ :param -D: if specified, link directory is created.
-  #$ :param -f: if a file or directory of the sane name exists, it will be deleted.
-  #$ :param target: where the link should be pointing to
-  #$ :param lnk: where the link is to be created
   while [ $# -gt 0 ]
   do
     case "$1" in
@@ -599,12 +523,6 @@ fixlnk() { #$ Function to update symlinks
     esac
     shift
   done
-  #$ Will make sure that the given symlink exists and points to the
-  #$ right location.
-  #$
-  #$ Note that this will first check if the symlink needs to be corrected.
-  #$ Otherwise no action is taken.
-  #$ :returns: true if file was changed, false if no change was performed
   if [ $# -ne 2 ] ; then
     echo "Usage: fixlnk {target} {lnk}" 1>&2
     return 10
@@ -633,12 +551,7 @@ fixlnk() { #$ Function to update symlinks
 }
 
 
-is_mounted() ( #$ check if directory is a mounted mount point
-  #$ :usage:
-  #$ :param directory: directory moint point
-  #$ :returns: true if mounted, false if not
-  #$
-  #$ Determine if the given directory is a mount point
+is_mounted() (
   [ "$1" = none ] && return 1
   [ -d "$1" ] || return 1
   [  $(awk '$2 == "'"$1"'" { print }' /proc/mounts | wc -l) -eq 1 ] && return 0
@@ -647,13 +560,7 @@ is_mounted() ( #$ check if directory is a mounted mount point
 
 
 
-mkid() { #$ create arbitrary id strings
-  #$ :usage: _text_
-  #$ :param text: text to convert into id
-  #$ :output: Sanitized text
-  #$
-  #$ mkid accepts a string and sanitizes it so
-  #$ that it can be used as a shell variable name
+mkid() {
   echo "$*" | tr ' -' '__' | tr -dc '_A-Za-z0-9' \
   		| sed -e 's/^\([0-9]\)/_n\1/'
 }
@@ -667,30 +574,12 @@ __exit_handler() {
   eval "$__exit_cmd"
 }
 
-on_exit() { #$ register a command to be called on exit
-  #$ :usage: on_exit exit_command
-  #$ :param exit_command: command to execute on exit.
-  #$
-  #$ Adds a shell command to be executed on exit.
-  #$
-  #$ Instead of hooking `trap` _cmd_ `exit`, **on_exit** is cumulative,
-  #$ so multiple calls to **on_exit** will not replace the exit handler
-  #$ but add to it.
-  #$
-  #$ Only single commands are supported.  For more complex **on_exit**
-  #$ sequences, declare a function and call that instead.
+on_exit() {
   __exit_cmd="$__exit_cmd ; $*"
 }
 
 
-param() { #$ look-up key values from a params file
-  #$ :usage: param "params-file" "key"
-  #$ :param params-file: file with parameters
-  #$ :param key: key to look-up
-  #$ :output: configured value or empty string
-  #$
-  #$ This is a simple (quick and dirty) function to store configurable
-  #$ parameters in a file.
+param() {
   local src="$1" key="$2"
   awk '
     $1 == "'"$key"'" {
@@ -701,10 +590,7 @@ param() { #$ look-up key values from a params file
 }
 
 
-randpw() { #$ Generate random password
-  #$ :usage: randpw [length]
-  #$ :param length: password length
-  #$ :output: random password of the specified length
+randpw() {
   local chrs="1234567890abcdefghijklmnopqrstuvwxuyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#%^&*()-+_[]{};:,./<>?~'"
   local cc=$(expr length "$chrs")
 
@@ -720,14 +606,8 @@ randpw() { #$ Generate random password
 }
 
 
-retry() { #$ retry a command until it succeeds
+retry() {
   local v=true count=60 delay=1
-  #$ :usage: retry [options] cmd
-  #$ :param --verbose: show '.' to indicate attempts
-  #$ :param -0no-verbose: Do not show output
-  #$ :param --count=number: number of retry attempts
-  #$ :param --delay=seconds: wait this many seconds between attempts
-  #$ :param cmd : command (or function) to execute
   while [ $# -gt 0 ]
   do
     case "$1" in
@@ -740,19 +620,6 @@ retry() { #$ retry a command until it succeeds
     esac
     shift
   done
-  #$ :outputs: if verbose, show progress.
-  #$ :returns: true on success, false on failure
-  #$
-  #$ retry will attempt the given command until it succeeds up to
-  #$ a maximum count attempts.  To avoid overloading the systems,
-  #$ it will dealy attempts by the given delay (or 1 seconds if no
-  #$ delay was specified.
-  #$
-  #$ If verbose is specified, it will show '.' per attempt.  And show
-  #$ either "[TIMED-OUT]" or "[OK]" when completion on stderr.
-  #$
-  #$ Note that if the command being executed generates output it will
-  #$ be displayed.
   while ! "$@"
   do
     $v && echo -n '.' 1>&2
@@ -768,23 +635,12 @@ retry() { #$ retry a command until it succeeds
 }
 
 
-stderr() { #$ write to stderr
-  #$ :usage: stderr message
-  #$ Like the echo command but outputs to stdout instead ofstderr.
-  #$
-  #$ This could be done by echo and I/O redirection, but this is just
-  #$ syntatically more pleasent.
+stderr() {
   echo "$@" 1>&2
 }
 
-#$ URL encoding/decoding functions
 
-urlencode() { #$ encode string according to URL escape rules
-  #$ :usage: urlencode "string"
-  #$ :param string: string to encode
-  #$ :output: encoded string
-  #$
-  #$ Encode a "string" following URL encoding rules
+urlencode() {
   local l=${#1} i=0
   while [ $i -lt $l ]
   do
@@ -798,11 +654,7 @@ urlencode() { #$ encode string according to URL escape rules
   done
 }
 
-urldecode() { #$ decode URL encoded strings
-  #$ :usage: urldecode "string"
-  #$ :param string: string to decode
-  #$ :input: If no text is given as argument, urldecode will decode standard input.
-  #$ :output: Decoded strings
+urldecode() {
   if [ $# -eq 0 ] ; then
     printf '%b\n' "$(sed 's/+/ /g; s/%\([0-9a-fA-F][0-9a-fA-F]\)/\\x\1/g;')"
   else

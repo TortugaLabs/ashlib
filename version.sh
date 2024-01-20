@@ -1,7 +1,5 @@
 #!/usr/bin/atf-sh
-ashlib_version=$(echo '
-###$_requires: VERSION
-' |grep -v '^$')
+ashlib_version='<%VERSION%>'
 
 ###$_end-include
 #

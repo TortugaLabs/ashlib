@@ -33,6 +33,51 @@ do
   shift
 done
 
+#@@@ ghrelease.1.md
+#@ :version: <%VERSION%>
+#@
+#@ # NAME
+#@
+#@ **ghrelease** -- Perform a github release
+#@
+#@ # SYNOPSIS
+#@
+#@ **ghrelease** \[_options_] _version_
+#@
+#@ # DESCRIPTION
+#@
+#@ Perform activities related to creating a new release.  It will do the
+#@ following:
+#@
+#@ 1. If a file named `.ghrelease-checks` exists it is executed.
+#@    If it returns error, the process stops.
+#@ 2. Makes sure that there are no uncommited changes.
+#@ 3. Makes sure that there are commits since previous release
+#@ 4. Creates a `version.h` or `VERSION` file with the _version_
+#@ 5. Collect commit messages into release notes.
+#@ 6. Commit and create a tag with _version_.
+#@ 7. Use the github API to create a new release.
+#@
+#@ This is supposed to kick off a github workflow that can create
+#@ release artifacts.
+#@
+#@ # OPTIONS
+#@
+#@ - **--\[no-]index** : Generate index data
+#@ - **--rc|-t** : Create a release candidate (test release).  Can *not*
+#@   be done on the _default_ branch.
+#@ - **--rel|-r** : Create a release.  This is the default.  Can *only*
+#@   be done on the _default_ branch.
+#@ - **--\[no-\]gh**, -g or -G : Use the github API (this is the efault)
+#@   Use `--no-gh` or `-G` to disable this.
+#@ - **-i** \[_dir_] : install **ghrelease** to current directory or _dir_.
+#@ - _version_ : version tag
+#@ - **--purge** : Delete all pre-releases
+#@
+#@ # FILES
+#@ - `.ghrelease-checks` : executable script used to do pre-release checkes
+#@
+
 if [ $# -lt 1 ] ; then
   cat <<-_EOF_
 	Usage: $0 [options] version

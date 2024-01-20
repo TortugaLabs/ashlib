@@ -1,9 +1,6 @@
 #!/usr/bin/atf-sh
 #$ boolean check
 
-#|****f* ashlib/yesno
-#| NAME
-#|   yesno --
 yesno() { #$ boolean check
   #$ :usage: yesno value
   #$ :param value: test value.  Can either be the actual value or a variable name to test

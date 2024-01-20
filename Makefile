@@ -27,7 +27,10 @@ doc:
 		cgilib/*.sh \
 		pp/*.sh \
 		*.sh
-	docs/py make -C docs html
+	type pandoc && ( cd utils && python3 ../ashdoc.py --title='Man Pages' --prune --output=../docs/manpgs  \
+		-DVERSION=$$(cat ../VERSION) --gdoc --no-api \
+		*.sh) || echo "Install pandoc to generate man pages"
+	[ -d docs/.venv ] && docs/py make -C docs html || echo "Must run setup to create venv"
 
 ###$_begin-include: mk/todo.mk
 todo:
@@ -78,9 +81,11 @@ pkg/ashlib.sh: $(SNIPPETS) $(shell find pp -maxdepth 1 -type f '(' -name '*.sh' 
 	#
 		mkdir -p $$(dirname $@) ; \
 		(echo '#!/bin/sh'; \
-			[ -f VERSION ] && echo "# v$$(cat VERSION)" || \
-			[ -f ../VERSION ] && echo "# v$$(cat ../VERSION)" ; \
-			echo '# src: $^'; \
+			[ -f VERSION ] && echo "# $$(basename "$@") $$(cat VERSION)" ; \
+			[ -f ../VERSION ] && echo "# $$(basename "$@") $$(cat ../VERSION)" ; \
+			echo '# src: ' ; \
+			echo '$^' | fmt | sed -e 's/^/#      /' ; \
+			echo '#' ; \
 			echo 'eval "$$( (base64 -d | gzip -d) <<'\'_EOF_\' ; \
 			(for x in $^; do \
 				echo '###$$_include:' $$x ; done) \

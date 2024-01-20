@@ -1,8 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/spp.sh
-ashlib_version=$(echo '
-v3.0.0
-' |grep -v '^$')
+ashlib_version='v3.0.0'
 
 #
 # Copyright (c) 2020 Alejandro Liu
@@ -27,70 +25,73 @@ v3.0.0
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#++
-# = PP(1)
-# :Revision:	1.0
-# :Author:	A Liu Ly
-# :man manual:  ashlib programmer's manual
-#
-# == NAME
-#
-# pp - bash pre-processor
-#
-# == SYNOPSIS
-#
-# pp [--output=output] -Iinclude-path -Dcmd file.m.ext ...
-#
-# == DESCRIPTION
-#
-# Reads some textual data and output post-processed data.
-#
-# Uses HERE_DOC syntax for the pre-processing language.
-# So for example, variables are expanded directly as `$varname`
-# whereas commands can be embedded as `$(command call)`.
-#
-# As additional extension, lines of the form:
-#
-# ----
-# ##! command
-# ----
-#
-# Are used to include arbitrary shell commands.  These however
-# are executed in line (instead of a subshell as in `$(command)`.
-# This means that commands in `##!` lines can be used to define
-# variables, macros or include other files.
-#
-# == OPTIONS
-#
-# --output=output|-o::
-#   Sets the output filename.  If specified, all the input
-#   files will be sent to the output filename.  Use `-` for
-#   standard output.
-# -Iinclude-dir::
-#   Adds `include-dir` to the executable `PATH` (which is used
-#   in source commands (`.`).
-# -Dcmd::
-#   `cmd` will be eval'ed by the shell.  Used to define variables
-#   from the command line
-# file.m.ext::
-#   Input file to process.  Use `-` for standard input.  If `output`
-#   is not specified, the output will be `file.ext` unless the file
-#   extension can not be recognized.  In that case the output will
-#   be the same as the input file name with `.out` appended.
-#
-# == SPECIAL VARIABLES
-#
-# Within the pre-processed file, the following variables are
-# available:
-#
-# - name::
-#   input name without extensions.
-# - input::
-#   input file name
-# - output::
-#   output file name
-#--
-#
+#@@@ spp.1.md
+#@ :version: v3.0.0
+#@
+#@ # NAME
+#@
+#@ *spp* - bash pre-processor
+#@
+#@ # SYNOPSIS
+#@
+#@ **spp** \[**--output=output**] \[**-I** _include-path] \[**-D** _cmd_] _file.m.ext_  _..._
+#@
+#@ # DESCRIPTION
+#@
+#@ Reads some textual data and output post-processed data.
+#@
+#@ Uses HERE_DOC syntax for the pre-processing language.
+#@ So for example, variables are expanded directly as `$varname`
+#@ whereas commands can be embedded as `$(command call)`.
+#@
+#@ As additional extension, lines of the form:
+#@
+#@ ```bash
+#@ ##! command
+#@ ```
+#@
+#@ Are used to include arbitrary shell commands.  These however
+#@ are executed in line (instead of a subshell as in `$(command)`.
+#@ This means that commands in `##!` lines can be used to define
+#@ variables, macros or include other files.
+#@
+#@ ## OPTIONS
+#@
+#@ --output=output|-o
+#@
+#@ :  Sets the output filename.  If specified, all the input
+#@    files will be sent to the output filename.  Use `-` for
+#@    standard output.
+#@
+#@ -Iinclude-dir
+#@
+#@ :  Adds `include-dir` to the executable `PATH` (which is used
+#@    in source commands (`.`).
+#@
+#@ -Dcmd
+#@
+#@ :  `cmd` will be eval'ed by the shell.  Used to define variables
+#@    from the command line
+#@
+#@ file.m.ext
+#@
+#@ :   Input file to process.  Use `-` for standard input.  If `output`
+#@     is not specified, the output will be `file.ext` unless the file
+#@     extension can not be recognized.  In that case the output will
+#@     be the same as the input file name with `.out` appended.
+#@
+#@ # SPECIAL VARIABLES
+#@
+#@ Within the pre-processed file, the following variables are
+#@ available:
+#@
+#@ - name::
+#@   input name without extensions.
+#@ - input::
+#@   input file name
+#@ - output::
+#@   output file name
+#@
 set -euf -o pipefail
 
 
@@ -129,27 +130,7 @@ _pp_rewrite() {
   [ "$mode" = "heredoc" ] && echo ":$eof"
 }
 
-pp() { #$ Pre-processor
-  #$ :usage: pp < input > output
-  #$ :input: data to pre-process
-  #$ :output: pre-processed data
-  #$
-  #$ Read some textual data and output post-processed data.
-  #$
-  #$ Uses HERE_DOC syntax for the pre-processing language.
-  #$ So for example, variables are expanded directly as `$varname`
-  #$ whereas commands can be embedded as `$(command call)`.
-  #$
-  #$ As additional extension, lines of the form:
-  #$
-  #$ ```typescript
-  #$ ##! command
-  #$ ```
-  #$
-  #$   Are used to include arbitrary shell commands.  These however
-  #$   are executed in line (instead of a subshell as in `$(command)`.
-  #$   This means that commands in `##!` lines can be used to define
-  #$   variables, macros or include other files.
+pp() {
   local eof="$$"
   eof="EOF_${eof}_EOF_${eof}_EOF_${eof}_EOF_${eof}_EOF"
 
@@ -158,19 +139,12 @@ pp() { #$ Pre-processor
 
 
 
-pp_cmd() { #$ command line pp driver
-  #$ :usage: pp_cmd [--output=output] -Iinclude-path -Dcmd file.m.ext ...
+pp_cmd() {
   if [ $# -eq 0 ] ; then
     echo "Usage: $0 {input.m.ext} ..."
     exit 1
   fi
   local output='' query=''
-  #$
-  #$ Implements a command line interface for the `pp` function
-  #$
-  #$ Input files of the form `file.m.ext` are then pre-processed and
-  #$ the result is named `file.ext`.
-  #$
   while [ $# -gt 0 ]
   do
     case "$1" in
@@ -211,12 +185,6 @@ pp_cmd() { #$ command line pp driver
     esac
     shift
   done
-  #$ :param --output=file: write output to file
-  #$ :param --query=query: uses query instead of stdin
-  #$ :param -Lfile: load the given file (bash source)
-  #$ :param -Idir: add the directory to PATH
-  #$ :param -Dcommand: command is evaluated.  Usually for -Dkey=value assignemtns.
-  #$ :param file.m.ext: input files
   local rc=0 done='[OK]' ppfilter="pp"
 
   if [ -n "$output" ]  ; then
@@ -278,15 +246,7 @@ pp_cmd() { #$ command line pp driver
 
 
 
-find_in_path() { #$ Find a file in a path
-  #$ :usage: find_in_path [--path=PATH] file
-  #$ :param --path=PATH: don't use $PATH but the provided PATH
-  #$ :param file: file to find
-  #$ :returns: 0 if found, 1 if not found
-  #$ :output: full path of found file
-  #$
-  #$ Find a file in the provided path or PATH environment
-  #$ variable.
+find_in_path() {
   local spath="$PATH"
   while [ $# -gt 0 ]
   do
@@ -318,12 +278,7 @@ find_in_path() { #$ Find a file in a path
 }
 
 
-pp_include() { #$ file inclusion
-  #$ :usage: pp_include file [file ...]
-  #$ :usage: include() { pp_include "$@"; }
-  #$ :param file: files to include
-  #$
-  #$ Used to implement file inclusion in pp.sh
+pp_include() {
   local oPATH="$PATH" f inc
 
   for inc in "$@"

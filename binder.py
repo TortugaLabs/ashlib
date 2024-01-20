@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 '''Code binder
 
+## Description
+
 This script is used to embed code snippets into scripts.  It can later
 be used to update snippets in case the original snippet was modified.
+
+```{argparse}
+   :filename: ../binder.py
+   :func: cli_parser
+```
+
 '''
 #
 # Binder
@@ -20,6 +28,7 @@ import inspect
 
 cf = {
   'include_path': [],
+  'scoped_includes': {},
   'context': {
      'file': '<stdin>',
      'line': 0,
@@ -53,9 +62,11 @@ RE_END_SNIPPET = re.compile(r'(\s*)###\$_end-include:?(\s.*|)$')
 # Check for require's
 RE_REQUIRE_SNIPPET = re.compile(r'(\s*)###\$_requires?:\s*([^#\s]+)(.*)')
 # Embedded documentation
-RE_EMBED_ROBODOC = re.compile(r'(\s*)#\|\s*')
-
-
+RE_EMBED_DOC = re.compile(r'(\s*)#\$\s*')
+RE_EMBED_DOC2 = re.compile(r'\s+#\$\s*')
+# Text File ID
+RE_TEXT_FILE_ID = re.compile(r'<%([_A-Za-z][:\._A-Za-z0-9]*)%>')
+RE_TEXT_FILE_ID_CHECK = re.compile(r'^[_A-Z][:_A-Z0-9]*$')
 # Markers
 FMT_INCLUDE_SNIPPET = '{prefix}###$_include: {snippet}{comment}\n'
 FMT_BEGIN_SNIPPET = '{prefix}###$_begin-include: {snippet}{comment}\n'
@@ -64,8 +75,51 @@ FMT_DEF_META = 'fdir: {fdir}\ngitrepo: {giturl} ({remote})\ncommit: {describe}\n
 FMT_META_LINE = '{prefix}###| {text}\n'
 FMT_REQUIRES_DONE = '{prefix}###$_requires-satisfied: {snippet} as {snfile}\n'
 
+
+
 included = {}
+'''hash tracking files that have been included already'''
+
+def find_snippet(snippet, incdirs):
+  ''' Find the given snippet file in include directories
+
+  :param str snippet: name of snippet
+  :param list incdirs: List of str containing directories to search
+  :returns None|str: found snippet file path, None if not found
+
+  Will also check the `scoped_includes` if needed.
+  '''
+  # ~ print('CONTEXT: ', cf['context'])
+  # ~ print('  SNIPPET: ',snippet)
+  # ~ print('  INCLUDEDIRS: ', incdirs)
+
+  i = snippet.find(':')
+  if i != -1:
+    if snippet[:i] in cf['scoped_includes']:
+      snfile = '{dir}/{file}'.format(dir=cf['scoped_includes'][snippet[:i]],
+                                      file=snippet[i+1:])
+      if os.path.isfile(snfile):
+        return snfile
+
+  for fdir in incdirs:
+    if fdir is None: continue
+    snfile = '{dir}/{snippet}'.format(dir=fdir,
+                                      snippet=snippet)
+    if os.path.isfile(snfile):
+      # ~ print('  SNFILE: ', snfile)
+      return snfile
+  return None
+
 def include_snippet(line, mv, cwd, reent = False):
+  '''Include snippet
+
+  :param str line: line containing include/require statement
+  :param Match mv: match object that found include/require statement
+  :param str cwd: current direct for including/requring file
+  :param bool reent: (Optional, defaults to False) True if called from include_snippet, otherwise False.
+
+  Search for the requested snippet and processes it.
+  '''
   prefix = mv.group(1)
   snippet = mv.group(2)
   comment = mv.group(3).rstrip('\r\n')
@@ -75,13 +129,8 @@ def include_snippet(line, mv, cwd, reent = False):
                                       snippet=snippet,
                                       comment=comment)
 
-  for fdir in [ cwd ] + cf['include_path']:
-    if fdir is None: continue
-    snfile = '{dir}/{snippet}'.format(dir=fdir,
-                                      snippet=snippet)
-    if os.path.isfile(snfile): break
-
-  if not os.path.isfile(snfile):
+  snfile = find_snippet(snippet,[ cwd ] + cf['include_path'])
+  if snfile is None:
     sys.stderr.write('{snippet}: not found ({file}, {line})\n'.format(
                       snippet=snippet,
                       **cf['context']))
@@ -100,6 +149,8 @@ def include_snippet(line, mv, cwd, reent = False):
                                       comment=comment)
 
   sndir = os.path.dirname(snfile)
+  # ~ print('--SNFILE: ',snfile)
+  # ~ print('--SNDIR:  ',sndir)
   if sndir == '': sndir = '.'
   if cf['opts'].meta:
     meta = {
@@ -121,9 +172,15 @@ def include_snippet(line, mv, cwd, reent = False):
 
   with open(snfile, 'r') as fp:
     included[snfile] = (snippet, cf['context'])
+    oldcontext = cf['context'].copy()
+    cf['context'] = {
+     'file': snfile,
+     'line': 0,
+    }
+
     c = 0
     for line in fp:
-      c += 1
+      c += 1 ; cf['context']['line'] += 1
       if c == 1 and line[:3] == '#!/': continue # Skip hashbang
       if RE_END_SNIPPET.match(line): break
         # ~ sys.stderr.write('{snippet}: not embeddable ({file}, {line})\n{snippet}: Found EOS in {snfile}, {snline}\n'.format(
@@ -133,14 +190,39 @@ def include_snippet(line, mv, cwd, reent = False):
                       # ~ snline=c))
         # ~ return line
       # Skip embeded robodoc comments
-      if (not cf['opts'].doc) and RE_EMBED_ROBODOC.match(line): continue
+      if (not cf['opts'].doc) and RE_EMBED_DOC.match(line): continue
+      if RE_EMBED_DOC2.search(line):
+        line = RE_EMBED_DOC2.split(line,1)[0] + '\n'
+
       mv = RE_REQUIRE_SNIPPET.match(line)
       if mv:
         sntext += include_snippet(line, mv, sndir, True)
         continue
 
+      # Embedding text-file ids
+      mv = RE_TEXT_FILE_ID.search(line)
+      if mv:
+        # OK, make sure the syntax is right...
+        idpath = mv.group(1).replace('.','/')
+        if RE_TEXT_FILE_ID_CHECK.match(os.path.basename(idpath)):
+          idfile = find_snippet(idpath,[sndir]+cf['include_path'])
+          if not idfile is None:
+            txid = ''
+            with open(idfile,'r') as fp:
+              txid = fp.read()
+            txid.strip()
+            if txid != '':
+              i = txid.find('\n')
+              if i > 0: txid = txid[:i].strip()
+              line = line[0:mv.start()] + txid + line[mv.end():]
+          else:
+            sys.stderr.write('TEXT_FILE_ID: "{txid}": not found ({file}, {line})\n'.format(
+                        txid=mv.group(1), file = snippet, line = c))
+
       sntext += prefix
       sntext += line
+
+  cf['context'] = oldcontext
 
   if not sntext[-1] == '\n': sntext += '\n'
 
@@ -329,6 +411,33 @@ def bind_file(f):
     with open(f,'w') as fp:
       fp.write(moded)
 
+def append_path(pathspec):
+  '''Append a entry to the include path
+
+  :param str pathspec: path directory specification
+
+  It the `pathspec` contains a `=`, this defines a scoped
+  path.  Otherwise `pathspec` is simply added to the
+  include search path.
+
+  - `cf['include_path']` is updated.
+  - `cf['scoped_includes'] may be updated.
+  '''
+  if pathspec == '': return
+  i = pathspec.find('=')
+  if i != -1:
+    scope = pathspec[:i]
+    if scope == '': scope = None
+    pathspec = pathspec[i+1:]
+  else:
+    scope = None
+  if pathspec == '': return
+  if not os.path.isdir(pathspec): return
+
+  if not scope is None:
+    cf['scoped_includes'][scope] = pathspec
+  cf['include_path'].append(pathspec)
+
 def init_path(arginc):
   '''Initialize include path
 
@@ -338,22 +447,32 @@ def init_path(arginc):
   as `-I` command line options, or a colon (:) separated string in
   `BINDER_PATH` environment variable or the input of the current
   file being processed.
+
+  Explicitly scoped paths are possible by using the notation:
+
+  `scope-name=directory-path`
+
+  These directories are added to the path as `directory-path` but also
+  defined as a scoped path name `scope-name`.  You can then refer to
+  these directories with the `scope-name`.
   '''
   if not arginc is None:
     for d in arginc:
-      if not os.path.isdir(d): continue
-      cf['include_path'].append(d)
+      append_path(d)
 
   var = os.getenv(ENV_BINDER_PATH)
   if not var is None:
     for d in var.split(':'):
-      if not os.path.isdir(d): continue
-      cf['include_path'].append(d)
+      append_path(d)
 
   if not cf['opts'].no_std_path:
     d = os.path.dirname(__file__)
     if d == '': d='.'
     cf['include_path'].append(d)
+    cf['scoped_includes']['ASHLIB'] = d
+
+  # ~ print('INIT_INCLUDE_PATH:',cf['include_path'])
+  # ~ print('SCOPED_INCLUDES:',cf['scoped_includes'])
 
 git_cache = {}
 def gitcmd(cmdline,cwd, err=None):

@@ -25,6 +25,7 @@ else:
 extensions = [
   'autodoc2',
   'myst_parser',
+  'sphinxarg.ext',
 ]
 autodoc2_render_plugin = 'myst'
 # ~ autodoc2_packages = [ '../src/myotc', *glob.glob('../src/*.py') ]

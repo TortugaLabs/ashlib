@@ -25,7 +25,7 @@ v_le() { #$ version less or equal comparison
   test "$(echo "$@" | tr ' ' '\n'|sort -V|head -n 1)" == "$1"
 }
 
-v_lt() { #$ v_lt -- version less than comparison
+v_lt() { #$ version less than comparison
   #$ :usage: v_lt verstr1 verstr2
   #$ :param verstr1: first version string to compare
   #$ :param verstr2: second version string to compare

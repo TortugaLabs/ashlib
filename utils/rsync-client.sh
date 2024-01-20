@@ -1,5 +1,42 @@
 #!/bin/sh
 ###$_requires: version.sh
+#@@@ rsync-client.1.md
+#@ :version: <%VERSION%>
+#@
+#@ # NAME
+#@
+#@ **rsync-client** -- backup files to an rsync server
+#@
+#@ # SYNOPSIS
+#@
+#@ **rsync-client** \[**--\[no-]index**] \[**--\[no-]dry-run**] \[**--\[no-]info**] _module_ _pwd-file_ _srv_ _src_ \[_dst_]
+#@
+#@ # DESCRIPTION
+#@
+#@ Backup a directory tree to a remote rsync daemon (using plain rsync
+#@ protocol).
+#@
+#@ It can create an index file that can be used to quickly search and also
+#@ to backup and restore special files without elevated permissions on the
+#@ backup repository.
+#@
+#@ # OPTIONS
+#@
+#@ - **--\[no-]index** : Generate index data
+#@ - **--\[no-]dry-run** : If enabled only displays what would be done, but
+#@   will not transfer any data.
+#@ - **--\[no-]info** : display backup info
+#@ - _module_ : rsync module name on the target server
+#@ - _pwd-file_ : file containing the password
+#@ - _srv_ : target server
+#@ - _src_ : directory tree to backup
+#@ - _dst_ : target directory in the backup server's _module_
+#@
+#@ # SEE ALSO
+#@
+#@ **rsync(1)**
+#@
+
 set -euf -o pipefail
 indexing=false
 dryrun=false
@@ -163,14 +200,4 @@ $info && echo $(humanize_ti $(expr $(date +%s) - $start))
 $info && echo "EXIT: $rc"
 
 exit $rc
-
-
-
-# src=rsyncd/ ; srv=nd2 ; module=hassio ; RSYNC_PASSWORD=ziJ4Yi2o
-  #~ server: nd2.localnet
-  #~ port: 18873
-  #~ target: hassio
-  #~ username: hassio
-  #~ password: ziJ4Yi2o
-  #~ ssh_enabled: false
 
