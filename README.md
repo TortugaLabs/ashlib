@@ -54,6 +54,18 @@ Example, the scripts in `scripts` use `###$_include` to include the
 main module in `utils`.  In `utils`, the included module use
 `###$_requires` to embed their dependancies.
 
+## Changes
+
+- 3.0.1:
+  - version info
+  - scoped includes
+  - more documentation
+  - Added recursive options to ashdoc
+  - Recursive functionality in binder refactored into fwalktree
+    and supports matching file contents
+- 3.0.0:
+  - Re-factor to binder sytem.
+
 ## TODO
 
 - Re-factor `binder.py`, so that the logic that recurses through

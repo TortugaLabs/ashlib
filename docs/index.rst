@@ -14,8 +14,9 @@ ashlib reference documentation
 
    README
    apidocs/index
-   ashlib/index
    manpgs/index
+   ashlib/index
+   testlib/index
 
 
 

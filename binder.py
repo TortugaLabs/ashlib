@@ -20,8 +20,8 @@ import sys
 import re
 import subprocess
 import shutil
-import fnmatch
 from argparse import ArgumentParser, Action
+import fwalktree
 
 # used for exception handling
 import inspect
@@ -33,48 +33,56 @@ cf = {
      'file': '<stdin>',
      'line': 0,
   },
-  'filter': [
-      ('*~','-'), ('.git','D-'),
-      ('*.zip', 'F-'), ('*.jar', 'F-'),
-      ('*.gz', 'F-'), ('*.xz', 'F-'), ('*.bz2', 'F-'),
-      ('*.tar', 'F-'), ('*.cpio', 'F-'), ('*.tgz', 'F-'),
-      ('*.pyc', 'F-' ),
-      ('*.exe', 'F-' ), ( '*.EXE', 'F-' ),
-      ('*.[jJ][pP][gG]', 'F-' ), ( '*.jpeg', 'F-' ), ( '*.png', 'F-'),
-      ('*.gif', 'F-'), ('*.ico','F-'),
-      ('*.ttf', 'F-'), ('*.o','F-'),
-      ('*.pdf','F-'),  ('*.epub','F-'),  ('*.cbz','F-'),  ('*.cbr','F-'),
-      ('*.mp4', 'F-'),('*.mp3','F-'),('*.mov','F-'),('*.wav','F-'),
-   ],
-  'cli-filter': [],
   'opts': None,
 }
+'''global config settings'''
+
 
 ENV_BINDER_PATH = 'BINDER_PATH'
-DEF_PATTERN_DIRCFG = '.binderrc'
+'''Environment variable name used for defining snippets path'''
+
 
 # Check for '\s*###$include: <snippet>'
 RE_INCLUDE_SNIPPET = re.compile(r'(\s*)###\$_include:\s*([^#\s]+)(.*)')
+'''Regular expression for matching include directives'''
+
 # Check for '\s*###$begin-include: <snippet>'
 RE_BEGIN_SNIPPET = re.compile(r'(\s*)###\$_begin-include:\s*([^#\s]+)(.*)')
+'''Regular expression for matching the beginning of an included snippet'''
+
 # Check for '\s*###$end-include'
 RE_END_SNIPPET = re.compile(r'(\s*)###\$_end-include:?(\s.*|)$')
+'''Regular expression for matching the end of an included snippet'''
+
 # Check for require's
 RE_REQUIRE_SNIPPET = re.compile(r'(\s*)###\$_requires?:\s*([^#\s]+)(.*)')
+'''Regular expression for matching required snippets'''
+
 # Embedded documentation
 RE_EMBED_DOC = re.compile(r'(\s*)#\$\s*')
+'''Regular expression Main pattern for matching embedded docs'''
 RE_EMBED_DOC2 = re.compile(r'\s+#\$\s*')
+'''Regular expression Alternative pattern for matching embedded docs'''
+
 # Text File ID
 RE_TEXT_FILE_ID = re.compile(r'<%([_A-Za-z][:\._A-Za-z0-9]*)%>')
+'''Regular expression for matching text file ids'''
 RE_TEXT_FILE_ID_CHECK = re.compile(r'^[_A-Z][:_A-Z0-9]*$')
+'''Regular expression for matching text file ids'''
+
 # Markers
 FMT_INCLUDE_SNIPPET = '{prefix}###$_include: {snippet}{comment}\n'
+'''Format to generate include directives'''
 FMT_BEGIN_SNIPPET = '{prefix}###$_begin-include: {snippet}{comment}\n'
+'''Format to generate beginning of included snippet markets'''
 FMT_END_SNIPPET = '{prefix}###$_end-include: {snippet}\n'
+'''Format to generate end of included snippet markets'''
 FMT_DEF_META = 'fdir: {fdir}\ngitrepo: {giturl} ({remote})\ncommit: {describe}\ngitlog:---\n{log}\n===\n'
+'''Format to generate meta data section'''
 FMT_META_LINE = '{prefix}###| {text}\n'
+'''Format to generate meta data lines'''
 FMT_REQUIRES_DONE = '{prefix}###$_requires-satisfied: {snippet} as {snfile}\n'
-
+'''Format to output redundant requires'''
 
 
 included = {}
@@ -273,59 +281,6 @@ def bind_stream(fp,cwd):
     moded += find_eos['line']
   return moded, orig
 
-def add_filter_rule(ln,filter):
-  rule = ( ln, '+' )
-  for prefix in [ 'D+', 'D-', 'F+', 'F-', '+', '-']:
-    if ln.startswith(prefix):
-      rule = ( ln[len(prefix):] , prefix)
-      break
-  cf[filter].append(rule)
-
-def read_filtercfg(cfgfile,filter='filter'):
-  '''Defines filters from configuration file
-
-  :param str cfgfile: file name of configuration file to read
-  :param str filter: type of filter to load.  `filter` if not specified
-
-  Loads a filter specification from file.  The `cf[filter]` global
-  configuration is updated.
-  '''
-  cfilter = list(cf[filter])
-  nfilter = []
-  with open(cfgfile,'r') as fp:
-    for ln in fp:
-      ln = ln.strip()
-      if ln == '' or ln[0] == '#': continue
-      if ln == '!RESET!':
-        cfilter = []
-        nfilter = []
-        continue
-      add_filter_rule(ln,filter)
-
-  if filter == 'filter':
-    cf[filter] = nfilter + cfilter
-  else:
-    cf[filter] = cfilter + nfilter
-
-def filter_file(f,name=None):
-  '''Apply file filters
-
-  :param str f: file path to filter
-  :param str name: base name of the file (without directory path)
-  :returns bool: True if the file needs to be filtered, False if it should be processed
-
-  Filter file names/paths using the filter as defined in the `cf['cli-filter']`
-  and `cf['filter']` global configuration variables.
-  '''
-  if name is None: name = os.path.basename(f)
-
-  isdir = os.path.isdir(f)
-  for pat,op in cf['cli-filter'] + cf['filter']:
-    if op[0] == 'D' and (not isdir): continue # Dir only patterns...
-    if op[0] == 'F' and isdir: continue # File only patterns...
-    if fnmatch.fnmatch(f,pat[1:]) if pat[0] == '/' else fnmatch.fnmatch(name,pat):
-      return op[-1] == '-'
-  return False
 
 def bind_file(f):
   '''Bind the given file
@@ -337,59 +292,6 @@ def bind_file(f):
   '''
   cf['context']['file'] = f
   cf['context']['line'] = 0
-
-  if os.path.isdir(f) and cf['opts'].recursive:
-    # Recursive operations...
-    f = f.rstrip('/')
-
-    if cf['opts'].pattern_dircfg:
-      ofilter = list(cf['filter'])
-      sfile = '{dir}/{cfg}'.format(dir=f,cfg=cf['opts'].pattern_dircfg)
-      if os.path.isfile(sfile): read_filtercfg(sfile)
-
-    subs = os.listdir(f)
-    rc = 0
-    for i in subs:
-      sfile = '{dir}/{name}'.format(dir=f,name=i)
-      if sfile[:2] == './': sfile = sfile[2:] # This is not needed but make things nicer looking
-      if os.path.islink(sfile) and (not cf['opts'].follow_symlinks): continue # Skipping symlink
-      if not (os.path.isfile(sfile) or os.path.isdir(sfile)): continue # Ignore "special" files
-
-      ftest = filter_file(sfile,i)
-      if cf['opts'].pattern_test:
-        isdir = os.path.isdir(sfile)
-
-        print('PATTERN:{file}{isdir} - {yesno}'.format(file=sfile,
-                                  isdir='/' if isdir else '',
-                                  yesno='FILTERED' if ftest else 'PROCESS'))
-        if isdir and not ftest: bind_file(sfile)
-        continue
-
-      if ftest: continue
-
-      try:
-        bind_file(sfile)
-        cf['context']['file'] = f
-        cf['context']['line'] = 0
-      except UnicodeDecodeError:
-        if cf['opts'].report_binary:
-          sys.stderr.write('{file}: Unprocessed binary file\n'.format(file=sfile))
-      except Exception as err:
-        sys.stderr.write('{file},{line}: {err} (type: {type})\n{trace}\n'.format(**cf['context'],
-                                  err=str(err),
-                                  type=type(err),
-                                  trace=itrc()))
-        rc += 1
-
-    if cf['opts'].pattern_dircfg: # Restore previous filter config
-      cf['filter'] = ofilter
-
-    # ~ if rc > 0: raise Exception('{dir}: error files found'.format(dir=f))
-    return
-
-  if cf['opts'].pattern_test:
-    sys.stderr.write('Pattern test.  Ignoring: "{file}"\n'.format(file=f))
-    return
 
   cwd = os.path.dirname(f)
   if cwd == '': cwd = '.'
@@ -537,8 +439,10 @@ def cli_parser():
   cli.add_argument('--no-std-path', help='Do not use standard path', action='store_true')
   cli.add_argument('-R','--recursive', help='Allow to recurse into directories', action='store_true')
   cli.add_argument('--follow-symlinks', help='When recursive, follow symlinks', action='store_true')
-  cli.add_argument('--without-dircfg', help='Disable per-directory config file', action='store', const=None, dest='pattern_dircfg', default=DEF_PATTERN_DIRCFG)
-  cli.add_argument('--pattern-dircfg', help='Per-directory config file', nargs='?', const='.binderrc', default=DEF_PATTERN_DIRCFG)
+  cli.add_argument('--no-follow-symlinks', dest='follow_symlinks', help='When recursive, Do not follow symlinks', action='store_false')
+  cli.set_defaults(follow_symlinks=True)
+  cli.add_argument('--without-dircfg', help='Disable per-directory config file', action='store', const=None, dest='pattern_dircfg', default=fwalktree.DEF_PATTERN_DIRCFG)
+  cli.add_argument('--pattern-dircfg', help='Per-directory config file', nargs='?', const='.binderrc', default=fwalktree.DEF_PATTERN_DIRCFG)
   cli.add_argument('--reset-std-patterns', help='Reset built-in patterns', action='store_true')
   cli.add_argument('--pattern-file', help='Read patterns from file', action='append')
   cli.add_argument('--pattern', help='Add pattern rule', action='append')
@@ -554,13 +458,15 @@ if __name__ == '__main__':
 
   cf['opts'] = cli.parse_args()
 
-  if cf['opts'].reset_std_patterns: cf['filter'] = []
-  if cf['opts'].pattern:
-    for cfg in cf['opts'].pattern:
-      add_filter_rule(cfg,'cli-filter')
-  if cf['opts'].pattern_file:
-    for cfg in cf['opts'].pattern_file:
-      read_filtercfg(cfg,'cli-filter')
+  fwalktree.apply_cli_opts(cf['opts'])
+
+  # ~ if cf['opts'].reset_std_patterns: cf['filter'] = []
+  # ~ if cf['opts'].pattern:
+    # ~ for cfg in cf['opts'].pattern:
+      # ~ fwalktree.add_filter_rule(cfg,'cli-filter')
+  # ~ if cf['opts'].pattern_file:
+    # ~ for cfg in cf['opts'].pattern_file:
+      # ~ fwalktree.read_filtercfg(cfg,'cli-filter')
 
   init_path(cf['opts'].include)
   #print(cf)
@@ -569,14 +475,17 @@ if __name__ == '__main__':
   rc = 0
   if len(cf['opts'].file):
     for f in cf['opts'].file:
-      try:
-        bind_file(f)
-      except Exception as err:
-        sys.stderr.write('{file},{line}: {err} (type: {type})\n{trace}\n'.format(**cf['context'],
-                                        err=str(err),
-                                        type=type(err),
-                                        trace=itrc()))
-        rc += 1
+      if os.path.isdir(f) and cf['opts'].recursive:
+        rc += fwalktree.walktree(f,bind_file)
+      else:
+        try:
+          bind_file(f)
+        except Exception as err:
+          sys.stderr.write('{file},{line}: {err} (type: {type})\n{trace}\n'.format(**cf['context'],
+                                          err=str(err),
+                                          type=type(err),
+                                          trace=itrc()))
+          rc += 1
   else:
     # Use binder as a filter
     try:

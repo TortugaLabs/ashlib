@@ -123,6 +123,7 @@ import sys
 import subprocess
 import tempfile
 from argparse import ArgumentParser
+import fwalktree
 
 C_MARKER = '#$'
 RE_SIMPLE = re.compile(r'^\s*#\$ ?')
@@ -450,6 +451,17 @@ def cli_parser():
   cli.add_argument('--gdoc',help='Generate Generic docs', default=None, const='', action='store_const')
   cli.add_argument('--no-gdoc',dest='gdoc',help='Disable Gneric doc generation', action='store_const', const=None)
   cli.add_argument('--manify',help='Enable manify extensions', nargs='?', default=None, const='')
+  cli.add_argument('-R','--recursive', help='Allow to recurse into directories', action='store_true')
+  cli.add_argument('--follow-symlinks', help='When recursive, follow symlinks', action='store_true')
+  cli.add_argument('--no-follow-symlinks', dest='follow_symlinks', help='When recursive, Do not follow symlinks', action='store_false')
+  cli.set_defaults(follow_symlinks=True)
+  cli.add_argument('--without-dircfg', help='Disable per-directory config file', action='store', const=None, dest='pattern_dircfg', default=fwalktree.DEF_PATTERN_DIRCFG)
+  cli.add_argument('--pattern-dircfg', help='Per-directory config file', nargs='?', const='.binderrc', default=fwalktree.DEF_PATTERN_DIRCFG)
+  cli.add_argument('--reset-std-patterns', help='Reset built-in patterns', action='store_true')
+  cli.add_argument('--pattern-file', help='Read patterns from file', action='append')
+  cli.add_argument('--pattern', help='Add pattern rule', action='append')
+  cli.add_argument('--pattern-test', help='Test pattern rules', action='store_true')
+  cli.add_argument('--report-binary', help='Show detected binary files', action='store_true')
   cli.add_argument('files', help='File(s) to process', nargs='*')
   return cli
 
@@ -476,6 +488,7 @@ def removeEmptyFolders(path, removeRoot=True):
 if __name__ == '__main__':
   cli = cli_parser()
   args = cli.parse_args()
+  fwalktree.apply_cli_opts(args)
   O_OBJHDR = args.header
 
   O_MANIFY = args.manify
@@ -522,11 +535,20 @@ if __name__ == '__main__':
     sys.exit(0)
 
   toclst=[]
+
+  def wt_process_file(f):
+    process_file(f, args.output, toc=toclst, dryrun=args.dry_run,
+                  apigen=args.api, gdocgen = args.gdoc)
   # ~ print(args)
   for f in args.files:
-    process_file(f, args.output,
-                  toc=toclst, dryrun=args.dry_run,
-                  apigen=args.api, gdocgen = args.gdoc)
+    if os.path.isdir(f) and args.recursive:
+      fwalktree.walktree(f, wt_process_file)
+    else:
+      wt_process_file(f)
+
+    # ~ process_file(f, args.output,
+                  # ~ toc=toclst, dryrun=args.dry_run,
+                  # ~ apigen=args.api, gdocgen = args.gdoc)
 
   if not args.toc is None:
     gen_index(args.title,args.output.rstrip('/') + ('' if args.output == '' else '/') + args.toc, toclst, args.dry_run)

@@ -2,34 +2,42 @@
 SNIPPETS=$(shell find . -maxdepth 1 -type f '(' -name '*.sh' -o -name '*.bash' ')' | sed -e 's!^./!!' )
 SUBDIRS=$(shell find . -mindepth 1 -maxdepth 1 -type d ! -name .git)
 
-dir_has_binder=$(shell [ -f binder.py ] && echo yes)
-ifeq ($(dir_has_binder),yes)
-BINDER=python3 binder.py
-else
-BINDER=python3 ../binder.py
-endif
+#~ dir_has_binder=$(shell [ -f binder.py ] && echo yes)
+#~ ifeq ($(dir_has_binder),yes)
+#~ BINDER=python3 binder.py
+#~ else
+#~ BINDER=python3 ../binder.py
+#~ endif
 ###$_end-include: mk/prologue.mk
+BINDER=python3 binder.py
+ASHDOC=python3 ashdoc.py
 
 help:
 	@echo "Usage:"
 	@echo "- make doc : generate documentation"
 	@echo "- make todo : check code completeness"
 	@echo "- make test : run unit tests"
-	@echo "- make rebind : rebind scripts and Makefile(s) to latest snippets"
+	@echo "- make rebind : rebind scripts to latest snippets"
 	@echo "  Sub options: make OPTS=flags rebind"
 	@echo "  - OPTS=-u : unbind files"
 	@echo "  - OPTS=--dry-run : do not modify files, just show what happens"
+	@echo "- make make-rebind : rebind Makefile(s) to latest snippets"
+	@echo "  - OPTS work the same as with rebind, however, passing option -u"
+	@echo "    may lead to a non-working Makefile"
 	@echo "- make rtest : recursive test"
 	@echo "- make pkgs : create packaged libraries"
 
 doc:
-	python3 ashdoc.py --title='ashlib scripting API' --prune --output=docs/ashlib \
+	$(ASHDOC) --title='ashlib scripting API' --prune --output=docs/ashlib \
 		cgilib/*.sh \
 		pp/*.sh \
 		*.sh
-	type pandoc && ( cd utils && python3 ../ashdoc.py --title='Man Pages' --prune --output=../docs/manpgs  \
-		-DVERSION=$$(cat ../VERSION) --gdoc --no-api \
-		*.sh) || echo "Install pandoc to generate man pages"
+	$(ASHDOC) --title='ashlib testing API' --prune --output=docs/testlib \
+		testlib/*.sh
+	type pandoc && ( cd utils && $(ASHDOC) --title='Man Pages' \
+				--prune --output=../docs/manpgs  \
+				-DVERSION=$$(cat ../VERSION) --gdoc --no-api \
+				*.sh) || echo "Install pandoc to generate man pages"
 	[ -d docs/.venv ] && docs/py make -C docs html || echo "Must run setup to create venv"
 
 ###$_begin-include: mk/todo.mk
@@ -64,6 +72,8 @@ test: Kyuafile
 
 rebind:
 	$(BINDER) -R $(OPTS) scripts
+
+make-rebind:
 	$(BINDER) -R $(OPTS) --pattern='F+Makefile' --pattern='F-*' .
 
 ###$_begin-include: mk/rtest.mk

@@ -1,6 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/ghrelease.sh
-ashlib_version='v3.0.0'
+ashlib_version='v3.0.1-rc1'
 
 #
 # Release script
@@ -75,7 +75,7 @@ do
 done
 
 #@@@ ghrelease.1.md
-#@ :version: v3.0.0
+#@ :version: v3.0.1-rc1
 #@
 #@ # NAME
 #@

@@ -1,6 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/spp.sh
-ashlib_version='v3.0.0'
+ashlib_version='v3.0.1-rc1'
 
 #
 # Copyright (c) 2020 Alejandro Liu
@@ -26,7 +26,7 @@ ashlib_version='v3.0.0'
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 #@@@ spp.1.md
-#@ :version: v3.0.0
+#@ :version: v3.0.1-rc1
 #@
 #@ # NAME
 #@
