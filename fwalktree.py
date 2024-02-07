@@ -191,7 +191,7 @@ def walktree(dirname, lamb):
 
   if cf['pattern-dircfg']:
     ofilter = list(cf['filter'])
-    sfile = f'{dir}/{cf['pattern-dircfg']}'
+    sfile = f'{dir}/{cf["pattern-dircfg"]}'
     if os.path.isfile(sfile): read_filtercfg(sfile)
 
   subs = os.listdir(dirname)
