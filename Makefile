@@ -38,7 +38,8 @@ doc:
 				--prune --output=../docs/manpgs  \
 				-DVERSION=$$(cat ../VERSION) --gdoc --no-api \
 				*.sh) || echo "Install pandoc to generate man pages"
-	[ -d docs/.venv ] && docs/py make -C docs html || echo "Must run setup to create venv"
+	[ ! -d docs/.venv ] && (cd docs && ./setup.sh )
+	docs/py make -C docs html
 
 ###$_begin-include: mk/todo.mk
 todo:
