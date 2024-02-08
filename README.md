@@ -56,6 +56,8 @@ main module in `utils`.  In `utils`, the included module use
 
 ## Changes
 
+- 3.0.1-NEXT(DEV):
+  - Add is_path
 - 3.0.1:
   - version info
   - scoped includes
