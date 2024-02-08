@@ -90,7 +90,8 @@ if [ $# -lt 1 ] ; then
 	* version : version tag
 	* -i [dir] : install $0 to current directory or [dir].
 
-	If version is --purge, it will delete all pre-releases
+	If version is --purge, it will delete all pre-releases.
+	If version is --test, it will run tests.
 	_EOF_
   gh release list
   exit 1
@@ -110,8 +111,6 @@ else
 fi
 cd "$repodir"
 
-git pull --tags # Make sure remote|local tags are in sync
-
 if [ x"$relid" = x"--purge" ] ; then
   # Remove pre-release versions...
   if $github ; then
@@ -125,7 +124,19 @@ if [ x"$relid" = x"--purge" ] ; then
     echo "You can only purge from github releases"
   fi
   exit
+elif [ x"$relid" = x"--test" ] ; then
+  if [ -x "$checks" ] ; then
+    "$(readlink -f "$checks")" $@ || die -13 "pre-release checks failed!"
+  else
+    stderr ''
+    stderr "Skipping pre-release checks"
+    stderr "Create an executable script \"$checks\" to enable pre-release checks"
+    stderr ''
+  fi
+  exit 0
 fi
+
+git pull --tags # Make sure remote|local tags are in sync
 
 if [ -n "$(git tag -l $relid)" ] ; then
   echo "Tag: \"$relid\" already exists!"

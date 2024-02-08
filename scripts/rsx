@@ -1,6 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/rsx.sh
-ashlib_version='v3.0.1-rc1'
+ashlib_version='v3.0.1-NEXT(DEV)'
 
 #
 # Copyright (c) 2023 Alejandro Liu
@@ -330,7 +330,7 @@ install_util() {
 
   
     
-###$_requires-satisfied: die.sh as /home/alex/ww/ashlib-bounded/die.sh
+###$_requires-satisfied: die.sh as /home/alex/gg/ashlib/die.sh
 
 # -- these functions are for use in loaded snippets ---
 
