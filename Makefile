@@ -2,15 +2,15 @@
 SNIPPETS=$(shell find . -maxdepth 1 -type f '(' -name '*.sh' -o -name '*.bash' ')' | sed -e 's!^./!!' )
 SUBDIRS=$(shell find . -mindepth 1 -maxdepth 1 -type d ! -name .git)
 
-#~ dir_has_binder=$(shell [ -f binder.py ] && echo yes)
-#~ ifeq ($(dir_has_binder),yes)
-#~ BINDER=python3 binder.py
-#~ else
-#~ BINDER=python3 ../binder.py
-#~ endif
+dir_has_binder=$(shell [ -f binder.py ] && echo yes)
+ifeq ($(dir_has_binder),yes)
+BINDER=python3 $(shell readlink -f binder.py)
+ASHDOC=python3 $(shell readlink -f ashdoc.py)
+else
+BINDER=python3 $(shell readlink -f ../binder.py)
+ASHDOC=python3 $(shell readlink -f ../ashdoc.py)
+endif
 ###$_end-include: mk/prologue.mk
-BINDER=python3 binder.py
-ASHDOC=python3 ashdoc.py
 
 help:
 	@echo "Usage:"
@@ -38,7 +38,7 @@ doc:
 				--prune --output=../docs/manpgs  \
 				-DVERSION=$$(cat ../VERSION) --gdoc --no-api \
 				*.sh) || echo "Install pandoc to generate man pages"
-	[ ! -d docs/.venv ] && (cd docs && ./setup.sh )
+	[ ! -d docs/.venv ] && (cd docs && ./setup.sh ) || :
 	docs/py make -C docs html
 
 ###$_begin-include: mk/todo.mk
@@ -108,6 +108,12 @@ pkg/ashlib.sh: $(SNIPPETS) $(shell find pp -maxdepth 1 -type f '(' -name '*.sh' 
 pkg/cgilib.sh:
 	make -C cgilib ../pkg/cgilib.sh
 
-pkgs: pkg/ashlib.sh pkg/cgilib.sh
+pkg/pyus.py: $(shell find mypylib -maxdepth 1 -type f -name '*.py' | sed -e 's!^./!!')
+	mkdir -p $$(dirname $@) ; \
+	(echo '#!python3'; \
+		echo '###$$_include: mypylib/pyus.in.py' ) | $(BINDER) > $@
+
+
+pkgs: pkg/ashlib.sh pkg/cgilib.sh pkg/pyus.py
 
 
