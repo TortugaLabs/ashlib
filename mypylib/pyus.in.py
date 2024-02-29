@@ -14,5 +14,7 @@ Miscellaneous python utilities
 ###$_requires: reaper.py
 ###$_requires: src.py
 ###$_requires: unbuffered_io.py
+###$_requires: readfile.py
+
 
 ###$_end-include
