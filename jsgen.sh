@@ -75,6 +75,29 @@ json_add_object() {
 json_close_object() {
   JSON_DATA="$JSON_DATA${N}}$N"
 }
+json_add_list() {
+  json_add_line "$(json_esc "$1"): ["
+  JSON_START_OBJ=true
+}
+json_close_list() {
+  JSON_DATA="$JSON_DATA${N}]$N"
+}
+json_add_list_string() {
+  json_add_line "$(json_esc "$1")"
+}
+json_add_list_boolean() {
+  if [ ${1:-0} -eq 0 ] ; then
+    json_add_line false
+  else
+    json_add_line true
+  fi
+}
+json_add_list_int() {
+  json_add_line "$1"
+}
+json_add_list_raw() {
+  json_add_line "$1"
+}
 
 json_add_boolean() {
   #~ echo "json_add_boolean: $*" 1>&2
@@ -89,6 +112,9 @@ json_add_string() {
   json_add_line "$(json_esc "$1")": "$(json_esc "$2")"
 }
 json_add_int() {
+  json_add_line "$(json_esc "$1")": "$2"
+}
+json_add_raw() {
   json_add_line "$(json_esc "$1")": "$2"
 }
 json_dump() {

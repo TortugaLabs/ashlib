@@ -15,6 +15,7 @@ Miscellaneous python utilities
 ###$_requires: src.py
 ###$_requires: unbuffered_io.py
 ###$_requires: readfile.py
-
+###$_requires: strtr.py
+###$_requires: cidr_to_netmask.py
 
 ###$_end-include
