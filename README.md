@@ -30,6 +30,14 @@ snippets if they ever change.
 - `scripts` : contains bound scripts.  Copy these to include into your
   own code.
 - `utils` : contains code that is included by bound scripts.
+- `cgilib` : library for CGI programming
+- `compat` : compatibility functions
+- `docs` : [sphinx][sphinx] based documentation
+- `mk` : snippets used in `Makefiles`
+- `mypylib` : Python snippets
+- `pp` : shell-based pre-processor
+- `testlib` : routines for testing
+
 
 ## Binder codes
 
@@ -49,16 +57,15 @@ snippets if they ever change.
 - `<%TEXT_FILE_ID%>` \
   Are replaced by the contents of `TEXT_FILE_ID`.
 
-
 Example, the scripts in `scripts` use `###$_include` to include the
 main module in `utils`.  In `utils`, the included module use
 `###$_requires` to embed their dependancies.
 
 ## Changes
 
-- 3.0.1-NEXT(DEV):
-  - Add is_path
-  - Adding --test to ghrelease
+- 3.1.0-RC1:
+  - New features: is_path, ghrelease --test, readfile,
+    jsgen, pysetup
 - 3.0.1:
   - version info
   - scoped includes
@@ -84,3 +91,5 @@ main module in `utils`.  In `utils`, the included module use
   To detect binary files.
 - Add code to recurse through files/directores to ashdoc.py
 
+
+  [sphinx]:
