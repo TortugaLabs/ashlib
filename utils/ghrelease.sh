@@ -55,10 +55,14 @@ done
 #@    If it returns error, the process stops.
 #@ 2. Makes sure that there are no uncommited changes.
 #@ 3. Makes sure that there are commits since previous release
-#@ 4. Creates a `version.h` or `VERSION` file with the _version_
-#@ 5. Collect commit messages into release notes.
-#@ 6. Commit and create a tag with _version_.
-#@ 7. Use the github API to create a new release.
+#@ 4. Collect commit messages into release notes.
+#@ 5. Creates a `version.h` or `VERSION` file with the _version_
+#@ 6. If a file named `.ghrelease-versioning` exists, it is executed.
+#@    If it returns error, the process stops.
+#@    This script is used to update files with versioning strings
+#@    that needs to be added to the commit.
+#@ 7. Commit and create a tag with _version_.
+#@ 8. Use the github API to create a new release.
 #@
 #@ This is supposed to kick off a github workflow that can create
 #@ release artifacts.
@@ -77,8 +81,23 @@ done
 #@ - **--purge** : Delete all pre-releases
 #@ - **--test**: Run pre-release tests
 #@
+#@ # RELEASES
+#@
+#@ First to prepare a release you must start with a clean repository,
+#@ without any pending commits.  This can be either in a development
+#@ branch for pre-releases, or the default branch for actual release.
+#@ **NOTE** that development branches must have been pushed to [github](https://github.com/).
+#@
+#@ Run the `ghrelease` command with the new `version` tag.  Specify `--rc` or
+#@ `-t` for a pre-release.
+#@
+#@ A release will be created in the [github](https://github.com) repository
+#@ and if an *Github Action* is available to create release artifacts,
+#@ these will be automatically generated.
+#@
 #@ # FILES
 #@ - `.ghrelease-checks` : executable script used to do pre-release checkes
+#@ - `.ghrelease-versioning` : executable script used to update versions
 #@
 
 if [ $# -lt 1 ] ; then
