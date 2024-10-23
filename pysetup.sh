@@ -20,7 +20,7 @@ pysetup() { #$ setup a python virtual environment
   if [ $# -gt 0 ] && [ x"$1" = x"--reinstall" ] ; then
     rm -rf "$pydir"
     shift
-    [ $# -eq 0 ] && quit=true
+    quit=true
   fi
 
   dsc=$(readlink -f "$pydir" ; echo "$ospkgs" ; echo "$pypkgs" ; declare -f pysetup)
