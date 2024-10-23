@@ -1,9 +1,9 @@
 #!/bin/sh
 ###$_begin-include: utils/rsync-client.sh
-ashlib_version='v3.1.0-RC1'
+ashlib_version='v3.1.0-pre1'
 
 #@@@ rsync-client.1.md
-#@ :version: v3.1.0-RC1
+#@ :version: v3.1.0-pre1
 #@
 #@ # NAME
 #@
