@@ -27,7 +27,7 @@ help:
 	@echo "- make rtest : recursive test"
 	@echo "- make pkgs : create packaged libraries"
 
-doc:
+doc: pkg/pyus.py
 	$(ASHDOC) --title='ashlib scripting API' --prune --output=docs/ashlib \
 		cgilib/*.sh \
 		pp/*.sh \
@@ -72,7 +72,7 @@ test: Kyuafile
 	if type kyua ; then kyua test ; fi
 
 rebind:
-	$(BINDER) -R $(OPTS) scripts
+	$(BINDER) -R $(OPTS) scripts docs/py
 
 make-rebind:
 	$(BINDER) -R $(OPTS) --pattern='F+Makefile' --pattern='F-*' .
