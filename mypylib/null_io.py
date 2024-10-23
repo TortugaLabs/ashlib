@@ -9,12 +9,13 @@ def null_io(close = False, keep_stderr = False):
   '''Redirects I/O to `/dev/null`
 
   :param bool close: Defaults to False, if True, the current I/O channels are closed
+  :param bool keep_stderr: Default to False, if True, do not close stderr
 
   It will manipulate the operating sytems file descriptors and redirect them
-  to /dev/null.  By default, it will save the existing file descriptors so
+  to `/dev/null`.  By default, it will save the existing file descriptors so
   that they can be restored later with `denull_io`.
 
-  If `False` was passed as the `close` parameter, then previous file descriptors
+  If `True` was passed as the `close` parameter, then previous file descriptors
   will be closed and `denull_io` will not work anymore.
 
   '''

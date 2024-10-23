@@ -8,7 +8,7 @@ def strtr(strng, replace):
   :param dict replace: Mapping of string substitutions
   :returns str: string with the replaced contents
 
-  Based on https://stackoverflow.com/questions/10931150/phps-strtr-for-python
+  Based on [phps-strtr-for-python](https://stackoverflow.com/questions/10931150/phps-strtr-for-python).
 
   Equivalent to php [strtr](https://www.php.net/manual/en/function.strtr.php)
   function.

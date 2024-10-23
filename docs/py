@@ -1,7 +1,68 @@
 #!/bin/sh
-. "$(dirname "$0")"/.venv/bin/activate
-[ -e "$1" ] && [ ! -x "$1" ] && exec python3 "$@"
+set -euf
+(set -o pipefail >/dev/null 2>&1) && set -o pipefail || :
 
+mydir=$(dirname "$(readlink -f "$0")")
+myname=$(basename "$(readlink -f "$0")")
+pydir="$mydir/.venv"
+###$_begin-include: pysetup.sh
+
+pysetup() {
+  local pydir="$1" ; shift
+  local ospkgs="$1" ; shift
+  local pypkgs="$1" ; shift
+
+  local quit=false r missing
+
+  if [ $# -gt 0 ] && [ x"$1" = x"--reinstall" ] ; then
+    rm -rf "$pydir"
+    shift
+    quit=true
+  fi
+
+  dsc=$(readlink -f "$pydir" ; echo "$ospkgs" ; echo "$pypkgs" ; declare -f pysetup)
+  if [ -d "$pydir" ] ; then
+    cur=$(cat "$pydir/state.txt" || :)
+    if [ x"$cur" = x"$dsc" ] ; then
+      . "$pydir"/bin/activate
+      return
+    fi
+    rm -rf "$pydir"
+  fi
+
+  # Check for pre-requisites
+  missing=""
+  for r in $ospkgs
+  do
+    xbps-query "$r" || missing="$missing $r"
+  done
+  if [ -n "$missing" ] ; then
+    echo "Missing packages:$missing" 1>&2
+    exit 34
+  fi
+
+  python3 -m venv --system-site-packages "$pydir"
+  (
+    . "$pydir"/bin/activate
+    if [ -n "$pypkgs" ] ; then
+      pip install $pypkgs
+    fi
+  ) || exit 1
+  echo "$dsc" > "$pydir/state.txt"
+  $quit && exit 0
+  . "$pydir"/bin/activate
+}
+
+###$_end-include: pysetup.sh
+
+pysetup "$pydir" \
+      "" \
+      "docutils sphinx sphinx-argparse myst-parser sphinx-autodoc2" \
+      "$@"
+
+
+
+([ $# -eq 0 ] || ([ -e "$1" ] && [ ! -x "$1" ])) && exec python3 "$@"
 if [ -f "$1" ] && [ -x "$1" ] ; then
   cmd="$(readlink -f "$1")" ; shift
   exec "$cmd" "$@"
@@ -15,6 +76,3 @@ fi
 
 echo "$1: not found" 1>&2
 exit 1
-
-
-

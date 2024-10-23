@@ -29,8 +29,7 @@ extensions = [
 ]
 autodoc2_render_plugin = 'myst'
 # ~ autodoc2_packages = [ '../src/myotc', *glob.glob('../src/*.py') ]
-autodoc2_packages = list(glob.glob('../*.py'))
-
+autodoc2_packages = [ *glob.glob('../*.py'), '../pkg/pyus.py' ]
 myst_enable_extensions = [
   'tasklist',
   'fieldlist',
