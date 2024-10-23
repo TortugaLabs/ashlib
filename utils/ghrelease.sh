@@ -9,6 +9,8 @@ set -euf -o pipefail
 ###$_requires: stderr.sh
 
 checks=".ghrelease-checks"
+updver=".ghrelease-versioning"
+
 rc=false
 github=false
 gh_auth=false
@@ -73,6 +75,7 @@ done
 #@ - **-i** \[_dir_] : install **ghrelease** to current directory or _dir_.
 #@ - _version_ : version tag
 #@ - **--purge** : Delete all pre-releases
+#@ - **--test**: Run pre-release tests
 #@
 #@ # FILES
 #@ - `.ghrelease-checks` : executable script used to do pre-release checkes
@@ -191,6 +194,10 @@ else
 fi
 
 printf "$vformat" "$relid" > "$vfile"
+if [ -x "$updver" ] ; then
+  "$(readlink -f "$updver")" $relid || die -98 "version updates"
+fi
+
 git add "$vfile"
 git commit -m "$relid" "$vfile"
 git tag -a "$relid" -m "$relid"
