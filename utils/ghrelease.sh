@@ -180,6 +180,14 @@ else
   fi
 fi
 
+# Check for uncomitted changes
+if [ -n "$(git status --porcelain)" ] ; then
+  echo "Only run this on a clean checkout"
+  echo ''
+  git status
+  exit 3
+fi
+
 if [ -x "$checks" ] ; then
   "$(readlink -f "$checks")" $@ || die -13 "pre-release checks failed!"
 else
@@ -187,14 +195,6 @@ else
   stderr "Skipping pre-release checks"
   stderr "Create an executable script \"$checks\" to enable pre-release checks"
   stderr ''
-fi
-
-# Check for uncomitted changes
-if [ -n "$(git status --porcelain)" ] ; then
-  echo "Only run this on a clean checkout"
-  echo ''
-  git status
-  exit 3
 fi
 
 if ptag=$(git describe --abbrev=0) ; then
