@@ -78,8 +78,6 @@ main module in `utils`.  In `utils`, the included module use
 
 ## TODO
 
-- Re-factor `binder.py`, so that the logic that recurses through
-  files/directories is on its own module.
 - Add code:
   ```python
   textchars = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)) - {0x7f})
@@ -89,7 +87,6 @@ main module in `utils`.  In `utils`, the included module use
   is_binary_string(open('/usr/bin/dh_python3', 'rb').read(1024) # Returns False
   ```
   To detect binary files.
-- Add code to recurse through files/directores to ashdoc.py
 
 
-  [sphinx]:
+  [sphinx]: https://www.sphinx-doc.org/en/master/
