@@ -1,6 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/ghrelease.sh
-ashlib_version='v3.1.0-pre1'
+ashlib_version='v3.1.0-pre2'
 
 #
 # Release script
@@ -77,7 +77,7 @@ do
 done
 
 #@@@ ghrelease.1.md
-#@ :version: v3.1.0-pre1
+#@ :version: v3.1.0-pre2
 #@
 #@ # NAME
 #@
@@ -259,7 +259,7 @@ if [ -x "$updver" ] ; then
 fi
 
 git add "$vfile"
-git commit -m "$relid" "$vfile"
+git commit -m "$relid"
 git tag -a "$relid" -m "$relid"
 git push
 git push --tags

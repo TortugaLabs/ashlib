@@ -218,7 +218,7 @@ if [ -x "$updver" ] ; then
 fi
 
 git add "$vfile"
-git commit -m "$relid" "$vfile"
+git commit -m "$relid"
 git tag -a "$relid" -m "$relid"
 git push
 git push --tags
