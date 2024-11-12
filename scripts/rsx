@@ -1,6 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/rsx.sh
-ashlib_version='v3.1.0-pre3'
+ashlib_version='v3.1.0-pre4'
 
 #
 # Copyright (c) 2023 Alejandro Liu
