@@ -1,13 +1,16 @@
-#!/bin/sh
-set -euf
-(set -o pipefail >/dev/null 2>&1) && set -o pipefail || :
+#!/usr/bin/atf-sh
+#$ Setup python environments
 
-mydir=$(dirname "$(readlink -f "$0")")
-myname=$(basename "$(readlink -f "$0")")
-pydir="$mydir/.venv"
-###$_begin-include: pysetup.sh
-
-pysetup() {
+pysetup() { #$ setup a python virtual environment
+  #$ :usage: pysetup venvdir ospkgs pip_pkgs ... cmd_line_args ...
+  #$ :param venvdir: Path to python virtual environment
+  #$ :param ospkgs: OS packages that need to be pre-installed
+  #$ :param pip_pkgs: PIP pkgs to install in virtual environment
+  #$ :param cmd_line_args: pass "$@"
+  #$
+  #$ Check if a virtual environment exists or needs to be re-installed
+  #$ and sets it up if necessary.
+  #$
   local pydir="$1" ; shift
   local ospkgs="$1" ; shift
   local pypkgs="$1" ; shift
@@ -53,26 +56,23 @@ pysetup() {
   . "$pydir"/bin/activate
 }
 
-###$_end-include: pysetup.sh
+###$_end-include
+#
+# Unit testing
+#
+[ -n "${IN_COMMON:-}" ] && return
+type atf_get_srcdir >/dev/null 2>&1 || atf_get_srcdir() { pwd; }
+. $(atf_get_srcdir)/testlib/common.sh
 
-pysetup "$pydir" \
-      "" \
-      "docutils sphinx sphinx-argparse myst-parser sphinx-autodoc2" \
-      "$@"
+xt_syntax() {
+  : =descr "verify syntax..."
+  t=$(mktemp -d)
+  rc=0
+  ( set -euf -o pipefail ; pysetup "$t" "" "" ) || rc=$?
+  rm -rf "$t"
+  [ $rc -ne 0 ] && atf_fail "ERROR#$rc"
+  :
+}
 
 
-
-([ $# -eq 0 ] || ([ -e "$1" ] && [ ! -x "$1" ])) && exec python3 "$@"
-if [ -f "$1" ] && [ -x "$1" ] ; then
-  cmd="$(readlink -f "$1")" ; shift
-  exec "$cmd" "$@"
-fi
-
-cmd=$(which "$1")
-if [ -n "$cmd" ] ; then
-  shift
-  exec "$cmd" "$@"
-fi
-
-echo "$1: not found" 1>&2
-exit 1
+xatf_init

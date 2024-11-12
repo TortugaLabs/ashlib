@@ -2,11 +2,12 @@
 
 fixfile() { #$ Modify files in-place
   #$ :usage: fixfile [options] file
-  local mode= user= group= backupdir= backupext="~" filter=false mkdir=false encoded=false content=true
+  local mode= user= group= backupdir= backupext="~" filter=false mkdir=false encoded=false content=true dryrun=false
   #$
   #$ By default, modified files will be first backed up to a file with ~ extension.
   #$ The following options are available:
   #$
+  #$ :param --dry-run: perform a trial run with no changes made
   #$ :param --nobackup: disable creation of backups
   #$ :param --backupext=ext: Backups are created by adding ext.  Defaults to "~".
   #$ :param --no-content: only change metadata (mode, group, ownership)
@@ -29,9 +30,10 @@ fixfile() { #$ Modify files in-place
       --mode=*) mode=${1#--mode=} ;;
       --user=*) user=${1#--user=} ;;
       --group=*) group=${1#--group=} ;;
+      --dry-run) dryrun=true ;;
       -D|--mkdir) mkdir=true ;;
       --) shift ; break ;;
-      -*)  echo "Invalid option: $1" 1>&2 ; return 1 ;;
+      -*)  echo "Invalid option: $1" 1>&2 ; return 6 ;;
       *) break ;;
     esac
     shift
@@ -60,7 +62,7 @@ fixfile() { #$ Modify files in-place
 
   if [ $# -eq 0 ] ; then
     echo "No file specified" 1>&2
-    return 3
+    return 5
   fi
   local file="$1" ; shift
   [ $# -gt 0 ] && echo "Ignoring additional options: $*" 1>&2
@@ -93,9 +95,9 @@ fixfile() { #$ Modify files in-place
       return 4
     fi
     if $mkdir && [ ! -d "$(dirname "$file")" ] ; then
-      mkdir -p "$(dirname "$file")"
-      [ -n "$user" ] && chown "$user" "$(dirname "$file")"
-      [ -n "$group" ] && chgrp "$group" "$(dirname "$file")"
+      $dryrun || mkdir -p "$(dirname "$file")"
+      [ -n "$user" ] && $dryrun || chown "$user" "$(dirname "$file")"
+      [ -n "$group" ] && $dryrun || chgrp "$group" "$(dirname "$file")"
     fi
   fi
 
@@ -118,13 +120,13 @@ fixfile() { #$ Modify files in-place
 
   if $content && [ x"$otxt" != x"$ntxt" ] ; then
     if [ -f $file ] ; then
-      [ -f "$file$backupext" ] && rm -f "$file$backupext"
-      [ -n "$backupext" ] && cp -dp "$file" "$file$backupext"
+      [ -f "$file$backupext" ] && $dryrun || rm -f "$file$backupext"
+      [ -n "$backupext" ] && $dryrun || cp -dp "$file" "$file$backupext"
     fi
     if $encoded ; then
-      cat < "$tmpfile" >"$file"
+      $dryrun || (cat < "$tmpfile" >"$file")
     else
-      echo "$ntxt" | sed 's/^://' > "$file"
+      $dryrun || (echo "$ntxt" | sed 's/^://' > "$file")
     fi
     msg=$(echo $msg updated)
   fi
@@ -132,23 +134,23 @@ fixfile() { #$ Modify files in-place
 
   if [ -n "$user" ] ; then
     if [ $(find "$file" -maxdepth 0 -user "$user" | wc -l) -eq 0 ] ; then
-      chown "$user" "$file"
+      $dryrun || chown "$user" "$file"
       msg=$(echo $msg chown)
     fi
   fi
   if [ -n "$group" ] ; then
     if [ $(find "$file" -maxdepth 0 -group "$group" | wc -l) -eq 0 ] ; then
-      chgrp "$group" "$file"
+      $dryrun || chgrp "$group" "$file"
       msg=$(echo $msg chgrp)
     fi
   fi
   if [ -n "$mode" ] ; then
     if [ $(find "$file" -maxdepth 0 -perm "$mode" | wc -l) -eq 0 ] ; then
-      chmod "$mode" "$file"
+      $dryrun || chmod "$mode" "$file"
       msg=$(echo $msg chmod)
     fi
   fi
-  #$ :returns: true if file was changed, false if no change was needed
+  #$ :returns: 0 if file was changed, 1 if no change was needed, other non-zero values for error.
   #$ :output: File is updated if changed.  Filename and change summary is displayed on stderr.
   if [ -n "$msg" ] ; then
     echo "$file: $msg" 1>&2

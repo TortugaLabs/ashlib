@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# Update version strings
+#
+( set -o pipefail ) && set -o pipefail || :
+set -euf
+
+make rebind
+git add .

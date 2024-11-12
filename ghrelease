@@ -1,3 +1,9 @@
 #!/bin/sh
 export ORIG0="$0"
-exec "$(dirname "$0")/scripts/$(basename "$0")" "$@"
+t=$(mktemp)
+chmod a+x "$t"
+cat "$(dirname "$0")/scripts/$(basename "$0")" > "$t"
+rc=0
+"$t" "$@" || rc=$?
+rm -f "$t"
+exit "$rc"

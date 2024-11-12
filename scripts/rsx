@@ -1,6 +1,6 @@
 #!/bin/sh
 ###$_begin-include: utils/rsx.sh
-ashlib_version='v3.0.1-rc1'
+ashlib_version='v3.1.0-pre4'
 
 #
 # Copyright (c) 2023 Alejandro Liu
@@ -330,7 +330,7 @@ install_util() {
 
   
     
-###$_requires-satisfied: die.sh as /home/alex/ww/ashlib-bounded/die.sh
+###$_requires-satisfied: die.sh as /home/alex/gg/ashlib/die.sh
 
 # -- these functions are for use in loaded snippets ---
 
@@ -384,7 +384,7 @@ find_nic() {
 
 
 fixfile() {
-  local mode= user= group= backupdir= backupext="~" filter=false mkdir=false encoded=false content=true
+  local mode= user= group= backupdir= backupext="~" filter=false mkdir=false encoded=false content=true dryrun=false
   while [ $# -gt 0 ]
   do
     case "$1" in
@@ -396,9 +396,10 @@ fixfile() {
       --mode=*) mode=${1#--mode=} ;;
       --user=*) user=${1#--user=} ;;
       --group=*) group=${1#--group=} ;;
+      --dry-run) dryrun=true ;;
       -D|--mkdir) mkdir=true ;;
       --) shift ; break ;;
-      -*)  echo "Invalid option: $1" 1>&2 ; return 1 ;;
+      -*)  echo "Invalid option: $1" 1>&2 ; return 6 ;;
       *) break ;;
     esac
     shift
@@ -416,7 +417,7 @@ fixfile() {
 
   if [ $# -eq 0 ] ; then
     echo "No file specified" 1>&2
-    return 3
+    return 5
   fi
   local file="$1" ; shift
   [ $# -gt 0 ] && echo "Ignoring additional options: $*" 1>&2
@@ -449,9 +450,9 @@ fixfile() {
       return 4
     fi
     if $mkdir && [ ! -d "$(dirname "$file")" ] ; then
-      mkdir -p "$(dirname "$file")"
-      [ -n "$user" ] && chown "$user" "$(dirname "$file")"
-      [ -n "$group" ] && chgrp "$group" "$(dirname "$file")"
+      $dryrun || mkdir -p "$(dirname "$file")"
+      [ -n "$user" ] && $dryrun || chown "$user" "$(dirname "$file")"
+      [ -n "$group" ] && $dryrun || chgrp "$group" "$(dirname "$file")"
     fi
   fi
 
@@ -474,13 +475,13 @@ fixfile() {
 
   if $content && [ x"$otxt" != x"$ntxt" ] ; then
     if [ -f $file ] ; then
-      [ -f "$file$backupext" ] && rm -f "$file$backupext"
-      [ -n "$backupext" ] && cp -dp "$file" "$file$backupext"
+      [ -f "$file$backupext" ] && $dryrun || rm -f "$file$backupext"
+      [ -n "$backupext" ] && $dryrun || cp -dp "$file" "$file$backupext"
     fi
     if $encoded ; then
-      cat < "$tmpfile" >"$file"
+      $dryrun || (cat < "$tmpfile" >"$file")
     else
-      echo "$ntxt" | sed 's/^://' > "$file"
+      $dryrun || (echo "$ntxt" | sed 's/^://' > "$file")
     fi
     msg=$(echo $msg updated)
   fi
@@ -488,19 +489,19 @@ fixfile() {
 
   if [ -n "$user" ] ; then
     if [ $(find "$file" -maxdepth 0 -user "$user" | wc -l) -eq 0 ] ; then
-      chown "$user" "$file"
+      $dryrun || chown "$user" "$file"
       msg=$(echo $msg chown)
     fi
   fi
   if [ -n "$group" ] ; then
     if [ $(find "$file" -maxdepth 0 -group "$group" | wc -l) -eq 0 ] ; then
-      chgrp "$group" "$file"
+      $dryrun || chgrp "$group" "$file"
       msg=$(echo $msg chgrp)
     fi
   fi
   if [ -n "$mode" ] ; then
     if [ $(find "$file" -maxdepth 0 -perm "$mode" | wc -l) -eq 0 ] ; then
-      chmod "$mode" "$file"
+      $dryrun || chmod "$mode" "$file"
       msg=$(echo $msg chmod)
     fi
   fi
