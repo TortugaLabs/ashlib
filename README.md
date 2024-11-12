@@ -63,9 +63,11 @@ main module in `utils`.  In `utils`, the included module use
 
 ## Changes
 
-- 3.1.0-RC1:
+- 3.1.0:
   - New features: is_path, ghrelease --test, readfile,
-    jsgen, pysetup, dotenv
+    jsgen, pysetup, dotenv, python lib
+  - cfv: alternate syntax
+  - document updates and misc clean-ups
 - 3.0.1:
   - version info
   - scoped includes
