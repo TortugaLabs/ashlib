@@ -20,7 +20,7 @@ pysetup() {
     quit=true
   fi
 
-  dsc=$(readlink -f "$pydir" ; echo "$ospkgs" ; echo "$pypkgs" ; declare -f pysetup)
+  dsc=$(readlink -f "$pydir" ; echo "$ospkgs" ; echo "$pypkgs" ; declare -f pysetup || :)
   if [ -d "$pydir" ] ; then
     cur=$(cat "$pydir/state.txt" || :)
     if [ x"$cur" = x"$dsc" ] ; then
